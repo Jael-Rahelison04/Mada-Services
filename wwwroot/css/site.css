@@ -1,0 +1,81 @@
+/* --- Fondations --- */
+html {
+  font-size: 14px;
+  scroll-behavior: smooth; /* Navigation plus fluide entre les sections */
+}
+
+@media (min-width: 768px) {
+  html { font-size: 16px; }
+}
+
+html, body {
+  height: 100%;
+}
+
+body {
+  /* Suppression de la marge forcée car nous utilisons un footer moderne */
+  margin-bottom: 0; 
+  display: flex;
+  flex-direction: column;
+}
+
+/* --- Focus & Accessibilité (Focus Indigo) --- */
+/* On remplace le bleu Windows par votre couleur de marque */
+.btn:focus, 
+.btn:active:focus, 
+.nav-link:focus, 
+.form-control:focus, 
+.form-check-input:focus {
+  outline: none !important;
+  box-shadow: 0 0 0 2px white, 0 0 0 4px rgba(108, 92, 231, 0.25) !important;
+}
+
+/* --- Harmonisation des Inputs --- */
+/* On aligne le placeholder au centre-gauche pour plus de naturel */
+.form-floating > .form-control::placeholder {
+  color: #94a3b8;
+  opacity: 0.7;
+}
+
+/* Animation douce pour le passage du focus */
+.form-control {
+  transition: border-color 0.2s ease-in-out, box-shadow 0.2s ease-in-out;
+}
+
+/* --- Utilitaires de Design --- */
+
+/* Badge de statut professionnel */
+.badge-status {
+  padding: 0.5em 1em;
+  border-radius: 8px;
+  font-weight: 600;
+  font-size: 0.85rem;
+}
+
+/* Ombres douces pour les cartes */
+.shadow-soft {
+  box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.05) !important;
+}
+
+/* Barre de défilement (scrollbar) personnalisée pour les navigateurs modernes */
+::-webkit-scrollbar {
+  width: 8px;
+}
+
+::-webkit-scrollbar-track {
+  background: #f1f5f9;
+}
+
+::-webkit-scrollbar-thumb {
+  background: #cbd5e1;
+  border-radius: 10px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: #6c5ce7;
+}
+
+/* --- Fix pour le Sticky Footer --- */
+main {
+  flex: 1 0 auto;
+}

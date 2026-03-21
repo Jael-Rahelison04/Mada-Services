@@ -1,0 +1,219 @@
+﻿@model IEnumerable<MadaServices.Models.Provider>
+@{
+    ViewData["Title"] = "Expertise & Confiance - MadaServices";
+}
+
+<link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;600;800&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.1/font/bootstrap-icons.css">
+<link href="https://unpkg.com/aos@2.3.1/dist/aos.css" rel="stylesheet">
+
+<style>
+    :root {
+        --brand-dark: #0f4c5c;
+        --brand-main: #059669; /* Vert Émeraude pour la confiance */
+        --brand-secondary: #2563eb;
+        --brand-accent: #fbbf24; /* Jaune Or pour les étoiles */
+        --brand-bg: #f8fafc;
+    }
+
+    body { font-family: 'Outfit', sans-serif; background-color: var(--brand-bg); }
+
+    /* --- Hero spécialisé --- */
+    .hero-creative {
+        background: linear-gradient(135deg, #0f172a 0%, #0f4c5c 100%);
+        padding: 100px 0 150px;
+        position: relative;
+        color: white;
+        clip-path: polygon(0 0, 100% 0, 100% 90%, 0% 100%);
+    }
+
+    .trust-pill {
+        background: rgba(5, 150, 105, 0.2);
+        border: 1px solid rgba(5, 150, 105, 0.4);
+        padding: 6px 18px;
+        border-radius: 50px;
+        font-size: 0.85rem;
+        color: #34d399;
+        display: inline-flex;
+        align-items: center;
+        gap: 8px;
+    }
+
+    /* --- Stats de confiance --- */
+    .trust-bar {
+        background: white;
+        margin-top: -50px;
+        border-radius: 20px;
+        padding: 25px;
+        box-shadow: 0 15px 30px rgba(0,0,0,0.05);
+        border: 1px solid rgba(0,0,0,0.05);
+        position: relative;
+        z-index: 10;
+    }
+
+    .stat-item h4 { color: var(--brand-main); font-weight: 800; margin-bottom: 0; }
+
+    /* --- Cartes Experts avec Avis --- */
+    .pro-card {
+        background: white;
+        border-radius: 24px;
+        padding: 30px;
+        transition: 0.3s;
+        border: 1px solid rgba(0,0,0,0.03);
+        height: 100%;
+    }
+
+    .pro-card:hover {
+        transform: translateY(-10px);
+        box-shadow: 0 20px 40px rgba(0,0,0,0.08);
+    }
+
+    .avatar-box {
+        width: 60px; height: 60px;
+        background: var(--brand-bg);
+        border-radius: 15px;
+        display: flex; align-items: center; justify-content: center;
+        font-size: 1.5rem; font-weight: 800; color: var(--brand-main);
+        margin-bottom: 15px;
+    }
+
+    .rating-star { color: var(--brand-accent); font-size: 0.9rem; }
+
+    /* --- Section "Votre avis compte" --- */
+    .review-cta {
+        background: linear-gradient(135deg, var(--brand-main) 0%, var(--brand-secondary) 100%);
+        border-radius: 30px;
+        padding: 50px;
+        color: white;
+    }
+
+    .btn-review {
+        background: white;
+        color: var(--brand-main);
+        padding: 12px 30px;
+        border-radius: 15px;
+        font-weight: 700;
+        text-decoration: none;
+        transition: 0.3s;
+    }
+
+    .btn-review:hover { transform: scale(1.05); color: var(--brand-secondary); }
+</style>
+
+<section class="hero-creative">
+    <div class="container text-center" data-aos="fade-up">
+        <div class="trust-pill mb-4">
+            <i class="bi bi-shield-check"></i> +500 Experts vérifiés à Madagascar
+        </div>
+        <h1 class="display-3 fw-800 mb-3">La qualité se prouve <br> par les <span style="color: var(--brand-main)">avis.</span></h1>
+        <p class="lead opacity-75">Trouvez des prestataires recommandés par la communauté.</p>
+    </div>
+</section>
+
+<div class="container" style="margin-top: -80px;">
+    <div class="search-glass bg-white p-3 rounded-4 shadow-lg mb-4" data-aos="zoom-in">
+        <form asp-controller="Provider" asp-action="Search" method="get" class="row g-2">
+            <div class="col-md-5">
+                <input type="text" name="query" class="form-control border-0 bg-light p-3 rounded-3" placeholder="Quel service cherchez-vous ?">
+            </div>
+            <div class="col-md-4">
+                <select name="city" class="form-select border-0 bg-light p-3 rounded-3">
+                    <option value="">Toute l'île</option>
+                    <option value="Antananarivo">Antananarivo</option>
+                </select>
+            </div>
+            <div class="col-md-3">
+                <button class="btn btn-success w-100 p-3 fw-bold rounded-3" style="background: var(--brand-main)">Trouver un expert</button>
+            </div>
+        </form>
+    </div>
+
+    <div class="trust-bar row text-center g-4" data-aos="fade-up" data-aos-delay="100">
+        <div class="col-md-4 stat-item">
+            <h4>98%</h4>
+            <span class="text-muted small">Clients satisfaits</span>
+        </div>
+        <div class="col-md-4 stat-item border-start border-end">
+            <h4>12k+</h4>
+            <span class="text-muted small">Avis vérifiés</span>
+        </div>
+        <div class="col-md-4 stat-item">
+            <h4>24h</h4>
+            <span class="text-muted small">Délai moyen de réponse</span>
+        </div>
+    </div>
+</div>
+
+<section class="container py-5 mt-5">
+    <div class="d-flex justify-content-between align-items-end mb-4">
+        <div>
+            <h2 class="fw-800 mb-0">Experts les mieux notés</h2>
+            <p class="text-muted">Basé sur les derniers retours clients</p>
+        </div>
+        <a href="#" class="text-decoration-none fw-bold" style="color: var(--brand-main)">Voir tout <i class="bi bi-arrow-right"></i></a>
+    </div>
+
+    <div class="row g-4">
+        @foreach (var pro in Model.Take(4))
+        {
+            <div class="col-lg-3 col-md-6" data-aos="fade-up">
+                <div class="pro-card">
+                    <div class="avatar-box">@pro.FullName.Substring(0,1)</div>
+                    <div class="rating-star mb-2">
+                        <i class="bi bi-star-fill"></i>
+                        <i class="bi bi-star-fill"></i>
+                        <i class="bi bi-star-fill"></i>
+                        <i class="bi bi-star-fill"></i>
+                        <i class="bi bi-star-half"></i>
+                        <span class="text-muted small ms-1">(4.8)</span>
+                    </div>
+                    <h5 class="fw-bold mb-1">@pro.FullName</h5>
+                    <p class="text-muted small mb-3">@pro.JobTitle</p>
+                    <div class="pt-3 border-top">
+                        <a asp-action="Details" asp-route-id="@pro.Id" class="btn btn-outline-success btn-sm w-100 rounded-pill">Consulter les avis</a>
+                    </div>
+                </div>
+            </div>
+        }
+    </div>
+</section>
+
+<section class="container py-5">
+    <div class="review-cta" data-aos="zoom-in">
+        <div class="row align-items-center">
+            <div class="col-lg-8">
+                <h2 class="display-5 fw-800 mb-3">Votre expérience aide la communauté !</h2>
+                <p class="fs-5 opacity-75 mb-4">Vous avez fait appel à un de nos prestataires ? Partagez votre avis pour aider les autres malgaches à faire le bon choix.</p>
+                <div class="d-flex gap-3">
+                    <a href="#experts" class="btn-review">Laisser un avis</a>
+                    <div class="d-flex align-items-center gap-2">
+                        <div class="avatar-group d-flex">
+                            <i class="bi bi-person-circle fs-3 opacity-50"></i>
+                            <i class="bi bi-person-circle fs-3 opacity-50 ms-n2"></i>
+                        </div>
+                        <span class="small fw-bold">+200 avis déposés cette semaine</span>
+                    </div>
+                </div>
+            </div>
+            <div class="col-lg-4 d-none d-lg-block text-end">
+                <i class="bi bi-chat-heart" style="font-size: 10rem; opacity: 0.2"></i>
+            </div>
+        </div>
+    </div>
+</section>
+
+<section class="container py-5 mb-5">
+    <h4 class="fw-800 mb-4">Catégories populaires</h4>
+    <div class="d-flex flex-wrap gap-2">
+        <span class="badge bg-white text-dark border p-3 rounded-pill">💻 Informatique</span>
+        <span class="badge bg-white text-dark border p-3 rounded-pill">🔧 Plomberie</span>
+        <span class="badge bg-white text-dark border p-3 rounded-pill">📷 Photographie</span>
+        <span class="badge bg-white text-dark border p-3 rounded-pill">🎨 Design</span>
+        <span class="badge bg-white text-dark border p-3 rounded-pill">🧹 Ménage</span>
+    </div>
+</section>
+
+<script src="https://unpkg.com/aos@2.3.1/dist/aos.js"></script>
+<script>
+    AOS.init({ duration: 800, once: true });
+</script>

@@ -1,0 +1,167 @@
+@model MadaServices.Models.Provider
+@{
+    ViewData["Title"] = "Laisser un avis - " + Model.FullName;
+}
+
+<link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;600;800&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.1/font/bootstrap-icons.css">
+<link href="https://unpkg.com/aos@2.3.1/dist/aos.css" rel="stylesheet">
+
+<style>
+    :root {
+        --brand-primary: #059669;
+        --brand-secondary: #2563eb;
+        --brand-bg: #f8fafc;
+    }
+
+    body {
+        font-family: 'Outfit', sans-serif;
+        background-color: var(--brand-bg);
+    }
+
+    .review-container {
+        max-width: 600px;
+        margin: 60px auto;
+    }
+
+    .glass-card {
+        background: white;
+        border-radius: 30px;
+        border: 1px solid rgba(0,0,0,0.05);
+        box-shadow: 0 20px 40px rgba(0,0,0,0.08);
+        overflow: hidden;
+    }
+
+    .header-gradient {
+        background: linear-gradient(135deg, var(--brand-primary) 0%, var(--brand-secondary) 100%);
+        padding: 40px;
+        color: white;
+        text-align: center;
+    }
+
+    .provider-avatar-mini {
+        width: 80px;
+        height: 80px;
+        background: white;
+        border-radius: 20px;
+        margin: 0 auto 15px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 2rem;
+        font-weight: 800;
+        color: var(--brand-primary);
+        box-shadow: 0 10px 20px rgba(0,0,0,0.1);
+    }
+
+    .form-label {
+        font-weight: 700;
+        color: #1e293b;
+        margin-bottom: 10px;
+    }
+
+    .custom-input {
+        border-radius: 15px;
+        padding: 12px 20px;
+        border: 2px solid #e2e8f0;
+        transition: 0.3s;
+    }
+
+    .custom-input:focus {
+        border-color: var(--brand-primary);
+        box-shadow: 0 0 0 4px rgba(5, 150, 105, 0.1);
+    }
+
+    .btn-submit-review {
+        background: var(--brand-primary);
+        color: white;
+        border: none;
+        padding: 15px;
+        border-radius: 15px;
+        font-weight: 800;
+        width: 100%;
+        transition: 0.3s;
+        margin-top: 20px;
+    }
+
+    .btn-submit-review:hover {
+        background: #047857;
+        transform: translateY(-3px);
+        box-shadow: 0 10px 20px rgba(5, 150, 105, 0.2);
+    }
+
+    .back-link {
+        color: #64748b;
+        text-decoration: none;
+        font-weight: 600;
+        display: inline-flex;
+        align-items: center;
+        transition: 0.3s;
+    }
+
+    .back-link:hover {
+        color: var(--brand-secondary);
+    }
+</style>
+
+<div class="container">
+    <div class="review-container" data-aos="zoom-in" data-aos-duration="800">
+        
+        <a asp-action="Details" asp-route-id="@Model.Id" class="back-link mb-4">
+            <i class="bi bi-arrow-left me-2"></i> Retour au profil de @Model.FullName
+        </a>
+
+        <div class="glass-card">
+            <div class="header-gradient">
+                <div class="provider-avatar-mini">
+                    @Model.FullName.Substring(0,1)
+                </div>
+                <h3 class="fw-800 mb-1">Votre Avis</h3>
+                <p class="opacity-75 mb-0">Comment s'est passée votre expérience avec cet expert ?</p>
+            </div>
+
+            <div class="p-5">
+                <form asp-controller="Provider" asp-action="SubmitReview" method="post">
+                    @Html.AntiForgeryToken()
+                    
+                    <input type="hidden" name="ProviderId" value="@Model.Id" />
+
+                    <div class="mb-4">
+                        <label class="form-label">Notez le service</label>
+                        <select name="Rating" class="form-select custom-input" required>
+                            <option value="5">⭐⭐⭐⭐⭐ Excellent (5/5)</option>
+                            <option value="4">⭐⭐⭐⭐ Très Bien (4/5)</option>
+                            <option value="3" selected>⭐⭐⭐ Correct (3/5)</option>
+                            <option value="2">⭐⭐ Médiocre (2/5)</option>
+                            <option value="1">⭐ Décevant (1/5)</option>
+                        </select>
+                    </div>
+
+                    <div class="mb-4">
+                        <label class="form-label">Votre commentaire</label>
+                        <textarea name="Comment" class="form-control custom-input" rows="5" required 
+                            placeholder="Soyez précis : ponctualité, qualité du travail, courtoisie..."></textarea>
+                        <div class="form-text mt-2">
+                            <i class="bi bi-info-circle me-1"></i> Votre avis sera visible publiquement par la communauté MadaServices.
+                        </div>
+                    </div>
+
+                    <button type="submit" class="btn-submit-review">
+                        Publier mon avis 🇲🇬
+                    </button>
+                </form>
+            </div>
+        </div>
+
+        <p class="text-center text-muted mt-4 small">
+            En publiant, vous certifiez avoir réellement bénéficié des services de cet expert.
+        </p>
+    </div>
+</div>
+
+<script src="https://unpkg.com/aos@2.3.1/dist/aos.js"></script>
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+        AOS.init();
+    });
+</script>

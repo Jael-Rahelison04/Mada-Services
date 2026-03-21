@@ -1,0 +1,244 @@
+@model MadaServices.Models.Provider
+@{
+    ViewData["Title"] = "Tableau de Bord Pro";
+}
+
+<link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;600;800&display=swap" rel="stylesheet">
+
+<div class="container py-5">
+    <header class="row align-items-center mb-5 gy-3" data-aos="fade-down">
+        <div class="col-md-8">
+            <div class="d-flex align-items-center">
+                <div class="position-relative">
+                    <div class="rounded-circle border border-4 border-white shadow-sm d-flex align-items-center justify-content-center text-white" 
+                         style="width: 90px; height: 90px; background: linear-gradient(135deg, var(--brand-main) 0%, var(--brand-dark) 100%);">
+                        <i class="bi bi-person-fill display-6"></i>
+                    </div>
+                    @if(Model.IsVerified) {
+                        <span class="position-absolute bottom-0 end-0 bg-success border border-2 border-white rounded-circle p-1" title="Vérifié">
+                            <i class="bi bi-patch-check-fill text-white" style="font-size: 0.9rem;"></i>
+                        </span>
+                    }
+                </div>
+                <div class="ms-4">
+                    <h2 class="fw-800 text-dark mb-1">Bienvenue, @Model.FullName</h2>
+                    <p class="text-muted mb-0 d-flex align-items-center">
+                        <span class="badge rounded-pill px-3 me-2" style="background: var(--brand-bg); color: var(--brand-main);">@Model.JobTitle</span>
+                        <span class="small"><i class="bi bi-geo-alt me-1 text-brand-accent"></i>@Model.City</span>
+                    </p>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-4 text-md-end">
+            <a asp-action="Details" asp-route-id="@Model.Id" class="btn btn-outline-dark rounded-pill px-4 fw-600">
+                <i class="bi bi-eye me-2"></i>Voir mon profil public
+            </a>
+        </div>
+    </header>
+
+    <div class="row g-4">
+        <div class="col-lg-3" data-aos="fade-right">
+            <div class="nav flex-column nav-pills sidebar-nav-vibrant" id="v-pills-tab" role="tablist">
+                <button class="nav-link active" data-bs-toggle="pill" data-bs-target="#profile">
+                    <i class="bi bi-person-vcard"></i> Mon Profil
+                </button>
+                <button class="nav-link" data-bs-toggle="pill" data-bs-target="#portfolio">
+                    <i class="bi bi-grid-1x2"></i> Portfolio
+                </button>
+                <button class="nav-link d-flex justify-content-between align-items-center" data-bs-toggle="pill" data-bs-target="#reputation">
+                    <span><i class="bi bi-star"></i> Avis Clients</span>
+                    <span class="badge rounded-pill" style="background: var(--brand-accent);">4.8</span>
+                </button>
+                <button class="nav-link" data-bs-toggle="pill" data-bs-target="#verification">
+                    <i class="bi bi-shield-lock"></i> Certification
+                </button>
+            </div>
+        </div>
+
+        <div class="col-lg-9" data-aos="fade-up">
+            <div class="tab-content bg-white rounded-4 shadow-sm p-4 p-md-5" id="v-pills-tabContent" style="border: 1px solid rgba(0,0,0,0.05);">
+                
+                <div class="tab-pane fade show active" id="profile">
+                    <div class="mb-4">
+                        <h4 class="fw-800">Paramètres du profil</h4>
+                        <div style="width: 50px; height: 4px; background: var(--brand-accent); border-radius: 10px;" class="mb-3"></div>
+                    </div>
+                    
+                    <form asp-action="UpdateProfile" method="post">
+                        <div class="row g-3">
+                            <div class="col-md-6">
+                                <label class="label-mada">Nom complet</label>
+                                <input name="FullName" value="@Model.FullName" class="input-mada" required>
+                            </div>
+                            <div class="col-md-6">
+                                <label class="label-mada">Métier / Spécialité</label>
+                                <input name="JobTitle" value="@Model.JobTitle" class="input-mada" required>
+                            </div>
+                            <div class="col-md-6">
+                                <label class="label-mada">Ville de résidence</label>
+                                <select name="City" class="form-select input-mada">
+                                    <option value="@Model.City">@Model.City</option>
+                                    <option>Antananarivo</option>
+                                    <option>Toamasina</option>
+                                    <option>Antsirabe</option>
+                                </select>
+                            </div>
+                            <div class="col-md-6">
+                                <label class="label-mada">Tarif horaire (Ariary)</label>
+                                <input name="HourlyRate" value="@Model.HourlyRate" type="number" class="input-mada">
+                            </div>
+                            <div class="col-12">
+                                <label class="label-mada">Présentation professionnelle</label>
+                                <textarea name="Description" class="input-mada" rows="4">@Model.Description</textarea>
+                            </div>
+                            <div class="col-12 pt-3 text-end">
+                                <button type="submit" class="btn btn-mada-primary px-5 shadow-sm">Enregistrer</button>
+                            </div>
+                        </div>
+                    </form>
+                </div>
+
+                <div class="tab-pane fade" id="portfolio">
+                    <div class="d-flex justify-content-between align-items-center mb-4">
+                        <h4 class="fw-800 mb-0">Portfolio</h4>
+                        <label for="portfolioInput" class="btn btn-mada-accent btn-sm px-4">
+                            <i class="bi bi-camera me-2"></i>Ajouter une photo
+                        </label>
+                    </div>
+
+                    <form asp-action="UploadPortfolio" method="post" enctype="multipart/form-data" class="d-none">
+                        <input type="file" name="photo" id="portfolioInput" onchange="this.form.submit()">
+                    </form>
+
+                    <div class="row g-3">
+                        @if (Model.PortfolioImages?.Any() == true) {
+                            @foreach (var img in Model.PortfolioImages) {
+                                <div class="col-6 col-md-4">
+                                    <div class="portfolio-item">
+                                        <img src="@img" class="img-fluid rounded-4">
+                                        <div class="portfolio-overlay">
+                                            <button class="btn btn-danger btn-sm rounded-circle"><i class="bi bi-trash"></i></button>
+                                        </div>
+                                    </div>
+                                </div>
+                            }
+                        } else {
+                            <div class="col-12 text-center py-5 rounded-4" style="border: 2px dashed #e2e8f0; background: var(--brand-bg);">
+                                <i class="bi bi-images display-6 text-muted mb-3 d-block"></i>
+                                <p class="text-muted">Valorisez votre travail en ajoutant des photos.</p>
+                            </div>
+                        }
+                    </div>
+                </div>
+
+                <div class="tab-pane fade" id="verification">
+                    <h4 class="fw-800 mb-4">Statut de vérification</h4>
+                    @if (Model.IsVerified) {
+                        <div class="text-center py-5">
+                            <div class="d-inline-block p-4 rounded-circle mb-3" style="background: rgba(20, 116, 143, 0.1);">
+                                <i class="bi bi-patch-check-fill text-brand-main display-4"></i>
+                            </div>
+                            <h5 class="fw-bold">Compte Officiel MadaServices</h5>
+                            <p class="text-muted">Votre badge de confiance est actif.</p>
+                        </div>
+                    } else {
+                        <div class="card border-0 rounded-4 p-4" style="background: var(--brand-bg);">
+                            <h6 class="fw-bold text-brand-dark"><i class="bi bi-info-circle me-2"></i>Devenez un Expert Certifié</h6>
+                            <p class="small text-muted mb-4">Téléchargez une copie de votre CIN ou Passeport pour obtenir le badge de confiance.</p>
+                            <form asp-action="UploadVerification" method="post" enctype="multipart/form-data">
+                                <input type="file" name="document" class="form-control mb-3 input-mada" required>
+                                <button type="submit" class="btn btn-mada-primary w-100">Soumettre le document</button>
+                            </form>
+                        </div>
+                    }
+                </div>
+
+            </div>
+        </div>
+    </div>
+</div>
+
+<style>
+    :root {
+        --brand-dark: #0f4c5c;
+        --brand-main: #14748f;
+        --brand-accent: #ff6b6b;
+        --brand-bg: #f4f9f9;
+    }
+
+    body { 
+        background-color: var(--brand-bg); 
+        font-family: 'Outfit', sans-serif; 
+    }
+
+    .fw-800 { font-weight: 800; }
+    .text-brand-main { color: var(--brand-main); }
+    .text-brand-dark { color: var(--brand-dark); }
+    .text-brand-accent { color: var(--brand-accent); }
+
+    /* Navigation Sidebar */
+    .sidebar-nav-vibrant .nav-link {
+        border: none;
+        background: transparent;
+        color: var(--brand-dark);
+        padding: 1rem 1.5rem;
+        border-radius: 16px;
+        margin-bottom: 8px;
+        font-weight: 600;
+        text-align: left;
+        transition: 0.3s;
+    }
+    .sidebar-nav-vibrant .nav-link i { margin-right: 12px; font-size: 1.2rem; }
+    .sidebar-nav-vibrant .nav-link.active {
+        background: var(--brand-main) !important;
+        color: white !important;
+        box-shadow: 0 10px 20px rgba(20, 116, 143, 0.2);
+    }
+    .sidebar-nav-vibrant .nav-link:hover:not(.active) {
+        background: rgba(20, 116, 143, 0.05);
+        transform: translateX(5px);
+    }
+
+    /* Form Customization */
+    .label-mada { font-size: 0.85rem; font-weight: 700; color: var(--brand-dark); margin-bottom: 6px; text-transform: uppercase; letter-spacing: 0.5px; }
+    .input-mada {
+        display: block; width: 100%; padding: 0.8rem 1.2rem;
+        font-size: 1rem; border: 1px solid #e2e8f0;
+        border-radius: 12px; background-color: #f8fafc;
+        transition: 0.3s;
+    }
+    .input-mada:focus { outline: none; border-color: var(--brand-main); background-color: #fff; box-shadow: 0 0 0 4px rgba(20, 116, 143, 0.1); }
+
+    /* Buttons */
+    .btn-mada-primary {
+        background: var(--brand-main);
+        color: white;
+        border: none;
+        border-radius: 50px;
+        padding: 12px 30px;
+        font-weight: 700;
+        transition: 0.3s;
+    }
+    .btn-mada-primary:hover { background: var(--brand-dark); transform: translateY(-2px); color: white; }
+
+    .btn-mada-accent {
+        background: var(--brand-accent);
+        color: white;
+        border: none;
+        border-radius: 50px;
+        font-weight: 700;
+        transition: 0.3s;
+    }
+    .btn-mada-accent:hover { opacity: 0.9; transform: scale(1.05); color: white; }
+
+    /* Portfolio */
+    .portfolio-item { position: relative; border-radius: 16px; overflow: hidden; cursor: pointer; aspect-ratio: 4/3; }
+    .portfolio-item img { width: 100%; height: 100%; object-fit: cover; transition: 0.5s; }
+    .portfolio-overlay {
+        position: absolute; inset: 0; background: rgba(15, 76, 92, 0.6);
+        display: flex; align-items: center; justify-content: center;
+        opacity: 0; transition: 0.3s;
+    }
+    .portfolio-item:hover img { transform: scale(1.1); }
+    .portfolio-item:hover .portfolio-overlay { opacity: 1; }
+</style>

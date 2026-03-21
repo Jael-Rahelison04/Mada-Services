@@ -1,0 +1,114 @@
+@model IEnumerable<MadaServices.Models.Review>
+
+@{
+    ViewData["Title"] = "Mes avis donnés";
+}
+
+<div class="container py-5">
+    <div class="d-flex align-items-center justify-content-between mb-5">
+        <div class="d-flex align-items-center">
+            <div class="bg-primary-soft p-3 rounded-circle text-primary me-3">
+                <i class="bi bi-chat-left-heart-fill fs-3"></i>
+            </div>
+            <div>
+                <h2 class="fw-800 mb-0">Mes avis publiés</h2>
+                <p class="text-muted mb-0">Vous avez partagé <strong>@Model.Count()</strong> expérience(s) avec la communauté.</p>
+            </div>
+        </div>
+        <a asp-controller="Home" asp-action="Index" class="btn btn-outline-primary rounded-pill btn-sm">
+            <i class="bi bi-plus-lg me-1"></i> Nouveau service
+        </a>
+    </div>
+
+    @if (!Model.Any())
+    {
+        <div class="card border-0 shadow-sm rounded-5 p-5 text-center">
+            <div class="py-4">
+                <i class="bi bi-chat-square-dots fs-1 text-muted opacity-25"></i>
+                <h4 class="mt-3 fw-bold">Aucun avis pour le moment</h4>
+                <p class="text-muted">Partagez votre avis sur les prestataires pour aider les autres utilisateurs.</p>
+                <div class="mt-4">
+                    <a asp-controller="Home" asp-action="Index" class="btn btn-vibrant px-4">Découvrir des services</a>
+                </div>
+            </div>
+        </div>
+    }
+    else
+    {
+        <div class="row g-4">
+            @foreach (var review in Model.OrderByDescending(r => r.DatePosted))
+            {
+                <div class="col-md-6">
+                    <div class="card border-0 shadow-sm rounded-4 h-100 p-4 transition-hover">
+                        <div class="d-flex justify-content-between align-items-start mb-3">
+                            <div class="d-flex align-items-center">
+                                <div class="bg-light rounded-3 p-2 me-3 text-center" style="min-width: 50px;">
+                                    <i class="bi bi-person-badge text-primary fs-4"></i>
+                                </div>
+                                <div>
+                                    <h5 class="fw-bold mb-0">@review.Provider?.FullName</h5>
+                                    <small class="text-muted">@review.Provider?.JobTitle</small>
+                                </div>
+                            </div>
+                            <div class="dropdown">
+                                <button class="btn btn-light btn-sm rounded-circle" data-bs-toggle="dropdown">
+                                    <i class="bi bi-three-dots-vertical"></i>
+                                </button>
+                                <ul class="dropdown-menu dropdown-menu-end border-0 shadow-sm rounded-3">
+                                    <li>
+                                        <a class="dropdown-item" asp-controller="Provider" asp-action="Details" asp-route-id="@review.ProviderId">
+                                            <i class="bi bi-eye me-2"></i> Voir le profil
+                                        </a>
+                                    </li>
+                                    <li><hr class="dropdown-divider opacity-50"></li>
+                                    <li>
+                                        <a class="dropdown-item text-danger" href="#">
+                                            <i class="bi bi-trash me-2"></i> Supprimer l'avis
+                                        </a>
+                                    </li>
+                                </ul>
+                            </div>
+                        </div>
+
+                        <div class="bg-light rounded-3 p-3 mb-3">
+                            <div class="text-warning mb-2">
+                                @for (int i = 1; i <= 5; i++)
+                                {
+                                    <i class="bi @(i <= review.Rating ? "bi-star-fill" : "bi-star")"></i>
+                                }
+                                <span class="ms-2 text-dark fw-bold">@review.Rating/5</span>
+                            </div>
+                            <p class="text-secondary mb-0" style="font-style: italic;">"@review.Comment"</p>
+                        </div>
+
+                        <div class="d-flex justify-content-between align-items-center mt-auto pt-2">
+                            <span class="small text-muted">
+                                <i class="bi bi-calendar3 me-1"></i> @review.DatePosted.ToString("dd MMM yyyy")
+                            </span>
+                            <span class="badge bg-success-soft text-success rounded-pill px-3">
+                                <i class="bi bi-check2-circle me-1"></i> Publié
+                            </span>
+                        </div>
+                    </div>
+                </div>
+            }
+        </div>
+    }
+</div>
+
+<style>
+    .bg-primary-soft { background-color: rgba(108, 92, 231, 0.1); }
+    .bg-success-soft { background-color: rgba(0, 184, 148, 0.1); }
+    .fw-800 { font-weight: 800; }
+    
+    .transition-hover {
+        transition: transform 0.3s ease, box-shadow 0.3s ease;
+    }
+    
+    .transition-hover:hover {
+        transform: translateY(-5px);
+        box-shadow: 0 1rem 3rem rgba(0,0,0,0.1) !important;
+    }
+
+    .card { border: 1px solid rgba(0,0,0,0.02); }
+</style>

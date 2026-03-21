@@ -1,0 +1,86 @@
+/* --- Arrière-plan dynamique (Inspiré de ton --brand-bg) --- */
+.auth-bg {
+    background: linear-gradient(135deg, var(--brand-bg) 0%, #e8f2f2 100%);
+    min-height: calc(100vh - 80px);
+    display: flex;
+    align-items: center;
+    padding: 40px 0;
+}
+
+.auth-card-vibrant {
+    border: none;
+    border-radius: 30px; /* On garde tes angles arrondis généreux */
+    box-shadow: 0 25px 50px -12px rgba(15, 76, 92, 0.12); /* Ombre aux tons Teal */
+    overflow: hidden;
+    background: white;
+}
+
+/* --- En-tête de la carte (Harmonisé avec ton Hero) --- */
+.auth-header {
+    background: linear-gradient(135deg, var(--brand-dark) 0%, var(--brand-main) 100%);
+    padding: 50px 20px;
+    color: white;
+    text-align: center;
+    position: relative;
+    overflow: hidden;
+}
+
+/* Petit rappel de ton badge-certified dans l'en-tête */
+.auth-header::after {
+    content: "";
+    position: absolute;
+    width: 150px; height: 150px;
+    background: rgba(255, 107, 107, 0.15); /* Ton Corail */
+    border-radius: 50%;
+    top: -30px; right: -30px;
+}
+
+.auth-body { padding: 40px; }
+
+/* --- Champs de saisie stylisés (Comme tes input-pro) --- */
+.form-floating > .form-control {
+    border: 1px solid #eef2f3;
+    border-radius: 12px; /* Harmonisé avec ta barre de recherche */
+    padding: 1rem 1.2rem;
+    background-color: #f8fafc;
+    font-family: 'Outfit', sans-serif;
+}
+
+.form-floating > .form-control:focus {
+    border-color: var(--brand-main);
+    box-shadow: 0 0 0 4px rgba(20, 116, 143, 0.1);
+    background-color: white;
+}
+
+/* --- Bouton d'authentification (Ton style Teal Pro) --- */
+.btn-auth {
+    background: linear-gradient(135deg, var(--brand-main) 0%, var(--brand-dark) 100%);
+    color: white;
+    border: none;
+    border-radius: 12px;
+    padding: 14px;
+    font-weight: 700;
+    font-family: 'Outfit', sans-serif;
+    transition: all 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+}
+
+.btn-auth:hover {
+    transform: translateY(-3px);
+    box-shadow: 0 10px 20px rgba(15, 76, 92, 0.25);
+    color: white;
+    background: var(--brand-dark);
+}
+
+/* --- Lien vers l'alternative (Inscription/Connexion) --- */
+.auth-link {
+    color: var(--brand-main);
+    font-weight: 600;
+    text-decoration: none;
+    transition: 0.3s;
+}
+
+.auth-link:hover {
+    color: var(--brand-accent); /* Survol Corail */
+}

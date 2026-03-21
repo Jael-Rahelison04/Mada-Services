@@ -1,0 +1,215 @@
+@model MadaServices.Models.RegisterViewModel
+@{
+    ViewData["Title"] = "Rejoignez MadaServices";
+}
+
+<link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;600;800&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.1/font/bootstrap-icons.css">
+
+<style>
+    :root {
+        /* Nouvelle palette : Émeraude, Bleu Saphir et Menthe */
+        --brand-primary: #059669; /* Émeraude profond */
+        --brand-secondary: #2563eb; /* Bleu Royal */
+        --brand-dark: #0f172a; /* Bleu nuit très sombre */
+        --brand-bg: #f0fdfa; /* Fond menthe très léger */
+        --brand-gradient: linear-gradient(135deg, #059669 0%, #2563eb 100%);
+    }
+
+    .auth-bg {
+        background: var(--brand-bg);
+        background-image: 
+            radial-gradient(at 0% 0%, rgba(5, 150, 105, 0.1) 0px, transparent 50%),
+            radial-gradient(at 100% 100%, rgba(37, 99, 235, 0.1) 0px, transparent 50%);
+        min-height: 100vh;
+        display: flex;
+        align-items: center;
+        padding: 60px 0;
+    }
+
+    .auth-card {
+        border: none;
+        border-radius: 32px;
+        box-shadow: 0 25px 50px -12px rgba(5, 150, 105, 0.15);
+        overflow: hidden;
+        background: white;
+        animation: fadeIn 0.8s ease-out;
+    }
+
+    @@keyframes fadeIn {
+        from { opacity: 0; transform: translateY(20px); }
+        to { opacity: 1; transform: translateY(0); }
+    }
+
+    .auth-header {
+        background: var(--brand-gradient);
+        padding: 60px 30px;
+        color: white;
+        text-align: center;
+        position: relative;
+    }
+
+    .auth-header .icon-circle {
+        width: 80px;
+        height: 80px;
+        background: rgba(255, 255, 255, 0.2);
+        backdrop-filter: blur(5px);
+        border-radius: 50%;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        margin: 0 auto 20px;
+        border: 1px solid rgba(255, 255, 255, 0.3);
+    }
+
+    .auth-body { padding: 50px; }
+
+    /* Inputs Modernes */
+    .form-group-custom {
+        margin-bottom: 20px;
+        position: relative;
+    }
+
+    .form-control-custom {
+        width: 100%;
+        padding: 15px 15px 15px 50px;
+        background: #f8fafc;
+        border: 2px solid #e2e8f0;
+        border-radius: 16px;
+        transition: all 0.3s ease;
+        font-weight: 500;
+    }
+
+    .form-control-custom:focus {
+        outline: none;
+        border-color: var(--brand-primary);
+        background: white;
+        box-shadow: 0 0 0 4px rgba(5, 150, 105, 0.1);
+    }
+
+    .input-icon {
+        position: absolute;
+        left: 18px;
+        top: 50%;
+        transform: translateY(-50%);
+        color: #94a3b8;
+        font-size: 1.2rem;
+        transition: 0.3s;
+    }
+
+    .form-control-custom:focus + .input-icon {
+        color: var(--brand-primary);
+    }
+
+    /* Bouton d'action */
+    .btn-submit {
+        background: var(--brand-gradient);
+        color: white;
+        border: none;
+        border-radius: 16px;
+        padding: 16px;
+        font-weight: 800;
+        width: 100%;
+        font-size: 1.1rem;
+        transition: 0.4s;
+        box-shadow: 0 10px 20px rgba(5, 150, 105, 0.2);
+    }
+
+    .btn-submit:hover {
+        transform: translateY(-3px);
+        box-shadow: 0 15px 30px rgba(5, 150, 105, 0.3);
+        filter: brightness(1.1);
+    }
+
+    .select-role {
+        padding: 15px;
+        border-radius: 16px;
+        border: 2px solid #e2e8f0;
+        background-color: #f8fafc;
+        font-weight: 600;
+        color: var(--brand-dark);
+        cursor: pointer;
+    }
+
+    .auth-footer-link {
+        color: var(--brand-secondary);
+        font-weight: 700;
+        text-decoration: none;
+    }
+
+    .auth-footer-link:hover {
+        text-decoration: underline;
+    }
+</style>
+
+<div class="auth-bg">
+    <div class="container">
+        <div class="row justify-content-center">
+            <div class="col-lg-5 col-md-8">
+                <div class="card auth-card">
+                    
+                    <div class="auth-header">
+                        <div class="icon-circle">
+                            <i class="bi bi-shield-check fs-1"></i>
+                        </div>
+                        <h2 class="fw-800">Bienvenue</h2>
+                        <p class="mb-0 opacity-75">Rejoignez la communauté de confiance</p>
+                    </div>
+
+                    <div class="auth-body">
+                        @if (!ViewData.ModelState.IsValid)
+                        {
+                            <div class="alert alert-danger border-0 rounded-4 small mb-4">
+                                <i class="bi bi-exclamation-circle me-2"></i> Veuillez corriger les erreurs.
+                            </div>
+                        }
+
+                        <form method="post" asp-action="Register">
+                            
+                            <div class="form-group-custom">
+                                <input asp-for="FullName" class="form-control-custom" placeholder="Votre nom complet" required>
+                                <i class="bi bi-person input-icon"></i>
+                                <span asp-validation-for="FullName" class="text-danger small"></span>
+                            </div>
+
+                            <div class="form-group-custom">
+                                <input asp-for="Email" type="email" class="form-control-custom" placeholder="Adresse email" required>
+                                <i class="bi bi-envelope input-icon"></i>
+                                <span asp-validation-for="Email" class="text-danger small"></span>
+                            </div>
+
+                            <div class="form-group-custom">
+                                <input asp-for="Password" type="password" class="form-control-custom" placeholder="Mot de passe" required>
+                                <i class="bi bi-lock input-icon"></i>
+                                <span asp-validation-for="Password" class="text-danger small"></span>
+                            </div>
+
+                            <div class="mb-4">
+                                <label class="form-label small fw-bold text-muted ps-1 mb-2">Je souhaite :</label>
+                                <select asp-for="Role" class="form-select select-role shadow-none border-2">
+                                    <option value="Client">Trouver un prestataire (Client)</option>
+                                    <option value="Provider">Offrir mes services (Expert)</option>
+                                </select>
+                            </div>
+
+                            <button type="submit" class="btn btn-submit mb-4">
+                                Créer mon compte
+                            </button>
+                        </form>
+
+                        <div class="text-center">
+                            <p class="text-muted small mb-0">Déjà inscrit ?</p>
+                            <a asp-action="Login" class="auth-footer-link">Connectez-vous ici</a>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="text-center mt-4">
+                    <a asp-controller="Home" asp-action="Index" class="text-muted text-decoration-none small">
+                        <i class="bi bi-house me-1"></i> Retour à l'accueil
+                    </a>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>

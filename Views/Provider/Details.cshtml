@@ -1,0 +1,214 @@
+@model MadaServices.Models.Provider
+@{
+    ViewData["Title"] = Model.FullName;
+    bool canSeeContact = ViewBag.CanSeeContact ?? false;
+}
+
+<style>
+    :root {
+        --brand-primary: #059669;
+        --brand-secondary: #2563eb;
+        --brand-bg: #f0fdfa;
+        --brand-gradient: linear-gradient(135deg, #059669 0%, #2563eb 100%);
+    }
+
+    .profile-header-card {
+        background: white;
+        border: none;
+        border-radius: 24px;
+        box-shadow: 0 10px 30px rgba(15, 23, 42, 0.05);
+    }
+
+    .avatar-circle {
+        width: 100px;
+        height: 100px;
+        background: var(--brand-gradient);
+        color: white;
+        font-size: 2.5rem;
+        font-weight: 800;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        border-radius: 24px; /* Carré arrondi moderne au lieu d'un cercle parfait */
+        box-shadow: 0 10px 20px rgba(5, 150, 105, 0.2);
+    }
+
+    .badge-category {
+        background: rgba(5, 150, 105, 0.1);
+        color: var(--brand-primary);
+        font-weight: 700;
+        padding: 8px 16px;
+        border-radius: 12px;
+        font-size: 0.9rem;
+    }
+
+    .review-card {
+        border: none;
+        background: #f8fafc;
+        border-radius: 20px;
+        transition: 0.3s;
+    }
+
+    .review-card:hover {
+        background: white;
+        box-shadow: 0 5px 15px rgba(0,0,0,0.05);
+    }
+
+    .contact-card {
+        border: none;
+        border-radius: 24px;
+        background: white;
+        box-shadow: 0 20px 40px rgba(15, 23, 42, 0.08);
+        border: 1px solid rgba(5, 150, 105, 0.05);
+    }
+
+    .btn-action {
+        border-radius: 14px;
+        padding: 12px 24px;
+        font-weight: 700;
+        transition: 0.3s;
+    }
+
+    .btn-primary-mada {
+        background: var(--brand-gradient);
+        border: none;
+        color: white;
+    }
+
+    .btn-primary-mada:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 8px 15px rgba(5, 150, 105, 0.3);
+    }
+
+    .blur-text {
+        filter: blur(5px);
+        user-select: none;
+        opacity: 0.6;
+    }
+</style>
+
+<div class="container py-5">
+    <div class="row g-4">
+        <div class="col-lg-8">
+            <div class="profile-header-card p-4 p-md-5 mb-4">
+                <div class="d-flex flex-column flex-md-row align-items-center align-items-md-start gap-4">
+                    <div class="avatar-circle">
+                        @Model.FullName.Substring(0, 1).ToUpper()
+                    </div>
+                    <div class="text-center text-md-start flex-grow-1">
+                        <div class="mb-2">
+                            <span class="badge-category"><i class="bi bi-tag-fill me-1"></i> @Model.JobTitle</span>
+                        </div>
+                        <h1 class="fw-800 text-dark mb-2">@Model.FullName</h1>
+                        <p class="text-muted fs-5 mb-3"><i class="bi bi-geo-alt-fill text-primary me-1"></i> @Model.City, Madagascar</p>
+                        
+                        <div class="d-flex justify-content-center justify-content-md-start gap-3">
+                            <div class="text-center">
+                                <span class="d-block fw-bold fs-5">@(Model.Reviews?.Count ?? 0)</span>
+                                <span class="text-muted small">Avis</span>
+                            </div>
+                            <div class="vr mx-2"></div>
+                            <div class="text-center">
+                                <span class="d-block fw-bold fs-5 text-warning">
+                                    <i class="bi bi-star-fill"></i> 4.9
+                                </span>
+                                <span class="text-muted small">Note</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <hr class="my-4 opacity-5">
+
+                <h5 class="fw-bold text-dark mb-3"><i class="bi bi-info-circle me-2 text-primary"></i>À propos</h5>
+                <p class="text-muted lh-lg">
+                    @Model.Description
+                </p>
+            </div>
+
+            <div class="profile-header-card p-4 p-md-5">
+                <div class="d-flex justify-content-between align-items-center mb-4">
+                    <h5 class="fw-bold mb-0">Avis clients</h5>
+                    @if (User.Identity?.IsAuthenticated == true && !User.IsInRole("Provider")) {
+                        <a asp-action="AddReview" asp-route-id="@Model.Id" class="btn btn-outline-primary btn-action btn-sm">
+                            Laisser un avis
+                        </a>
+                    }
+                </div>
+
+                @if (Model.Reviews != null && Model.Reviews.Any()) {
+                    @foreach (var review in Model.Reviews.OrderByDescending(r => r.DatePosted)) {
+                        <div class="review-card p-3 mb-3">
+                            <div class="d-flex justify-content-between align-items-start mb-2">
+                                <div>
+                                    <span class="fw-bold d-block text-dark">@review.CustomerName</span>
+                                    <span class="text-muted small">@review.DatePosted.ToString("dd MMMM yyyy")</span>
+                                </div>
+                                <div class="text-warning small">
+                                    @for(int i=1; i<=5; i++) {
+                                        <i class="bi bi-star@(i <= review.Rating ? "-fill" : "")"></i>
+                                    }
+                                </div>
+                            </div>
+                            <p class="text-muted small mb-0 italic">"@review.Comment"</p>
+                        </div>
+                    }
+                } else {
+                    <div class="text-center py-4">
+                        <i class="bi bi-chat-left-text display-4 text-light mb-3 d-block"></i>
+                        <p class="text-muted">Aucun avis pour le moment.</p>
+                    </div>
+                }
+            </div>
+        </div>
+
+        <div class="col-lg-4">
+            <div class="contact-card p-4 sticky-top" style="top: 100px; z-index: 10;">
+                <h5 class="fw-bold text-dark mb-4">Contact direct</h5>
+                
+                @if (canSeeContact) {
+                    <div class="mb-4">
+                        <label class="text-muted small d-block mb-1">Numéro de téléphone</label>
+                        <div class="d-flex align-items-center">
+                            <i class="bi bi-phone fs-3 text-primary me-3"></i>
+                            <span class="fw-800 fs-4 text-dark">@Model.Phone</span>
+                        </div>
+                    </div>
+
+                    <div class="d-grid gap-3">
+                        <a href="tel:@Model.Phone" class="btn btn-primary-mada btn-action">
+                            <i class="bi bi-telephone-outbound me-2"></i> Appeler maintenant
+                        </a>
+                        <a href="https://wa.me/261@(Model.Phone.StartsWith("0") ? Model.Phone.Substring(1) : Model.Phone)" 
+                           target="_blank" class="btn btn-outline-success btn-action">
+                            <i class="bi bi-whatsapp me-2"></i> Discuter sur WhatsApp
+                        </a>
+                    </div>
+                } else {
+                    <div class="mb-4">
+                        <label class="text-muted small d-block mb-1">Numéro de téléphone</label>
+                        <div class="d-flex align-items-center">
+                            <i class="bi bi-lock-fill fs-3 text-light me-3"></i>
+                            <span class="fw-800 fs-4 blur-text">034 00 000 00</span>
+                        </div>
+                    </div>
+
+                    <div class="bg-light p-4 rounded-4 text-center">
+                        <i class="bi bi-shield-lock-fill text-primary display-6 mb-3 d-block"></i>
+                        <p class="small text-muted mb-4">Pour protéger les prestataires, vous devez être connecté pour voir les coordonnées.</p>
+                        <a asp-controller="Account" asp-action="Login" asp-route-returnUrl="@Context.Request.Path" class="btn btn-primary-mada btn-action w-100">
+                            Se connecter
+                        </a>
+                    </div>
+                }
+
+                <div class="mt-4 pt-3 border-top">
+                    <div class="d-flex align-items-center text-muted small">
+                        <i class="bi bi-check-circle-fill text-success me-2"></i>
+                        Profil vérifié par MadaServices
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>

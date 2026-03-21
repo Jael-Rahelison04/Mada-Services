@@ -1,0 +1,154 @@
+@model MadaServices.Models.Provider
+@{
+    ViewData["Title"] = Model.FullName;
+    bool canSeeContact = ViewBag.ShowContact ?? false;
+}
+
+<style>
+    :root {
+        --brand-primary: #059669;
+        --brand-gradient: linear-gradient(135deg, #059669 0%, #2563eb 100%);
+        --brand-bg: #f8fafc;
+    }
+
+    .profile-card {
+        border-radius: 30px;
+        background: white;
+        box-shadow: 0 20px 40px rgba(0,0,0,0.05);
+        border: 1px solid rgba(0,0,0,0.02);
+    }
+
+    .profile-sidebar {
+        background: #f1f5f9;
+        border-radius: 30px 0 0 30px;
+    }
+
+    .avatar-img {
+        width: 160px;
+        height: 160px;
+        object-fit: cover;
+        border: 6px solid white;
+        box-shadow: 0 10px 20px rgba(0,0,0,0.1);
+        border-radius: 25px; /* Look moderne */
+    }
+
+    .btn-vibrant-mada {
+        background: var(--brand-gradient);
+        color: white;
+        border: none;
+        padding: 12px 25px;
+        border-radius: 15px;
+        font-weight: 700;
+        transition: 0.3s;
+    }
+
+    .btn-vibrant-mada:hover {
+        transform: translateY(-3px);
+        box-shadow: 0 10px 20px rgba(5, 150, 105, 0.2);
+        color: white;
+    }
+
+    .review-mini-card {
+        background: white;
+        border: 1px solid #edf2f7;
+        border-radius: 20px;
+        transition: 0.3s;
+    }
+
+    .review-mini-card:hover {
+        border-color: var(--brand-primary);
+    }
+</style>
+
+<div class="container py-5">
+    <div class="profile-card overflow-hidden">
+        <div class="row g-0">
+            <div class="col-md-4 profile-sidebar text-center p-5">
+                <img src="@(string.IsNullOrEmpty(Model.ImageUrl) ? "/images/default-avatar.png" : Model.ImageUrl)" 
+                     class="avatar-img mb-4" alt="@Model.FullName">
+                
+                <h2 class="fw-800 text-dark">@Model.FullName</h2>
+                <span class="badge bg-white text-primary shadow-sm px-3 py-2 rounded-pill mb-3">
+                    @Model.JobTitle
+                </span>
+                <p class="text-muted"><i class="bi bi-geo-alt-fill me-1"></i> @Model.City, Madagascar</p>
+            </div>
+            
+            <div class="col-md-8 p-5 bg-white">
+                <h4 class="fw-bold mb-4 text-dark">À propos de l'expert</h4>
+                <p class="text-muted lh-lg">@Model.Description</p>
+                
+                <div class="mt-5 p-4 rounded-4 bg-light d-flex flex-wrap justify-content-between align-items-center gap-3">
+                    <div>
+                        <span class="d-block text-muted small text-uppercase fw-bold">Tarif horaire</span>
+                        <h3 class="fw-800 mb-0" style="color: var(--brand-primary)">@Model.HourlyRate.ToString("N0") Ar <small class="fs-6">/ h</small></h3>
+                    </div>
+
+                    @if (canSeeContact) 
+                    {
+                        <div class="text-md-end">
+                            <p class="mb-2 fw-bold fs-5 text-dark"><i class="bi bi-telephone-fill me-2 text-primary"></i>@Model.PhoneNumber</p>
+                            <div class="d-flex gap-2">
+                                <a href="tel:@Model.PhoneNumber" class="btn btn-outline-primary rounded-pill">Appeler</a>
+                                <a href="https://wa.me/@Model.PhoneNumber.Replace(" ", "")" class="btn btn-success rounded-pill px-4">
+                                    <i class="bi bi-whatsapp me-2"></i>WhatsApp
+                                </a>
+                            </div>
+                        </div>
+                    }
+                    else 
+                    {
+                        <div class="alert alert-warning rounded-4 border-0 mb-0">
+                            <i class="bi bi-lock-fill me-2"></i> 
+                            <a asp-controller="Account" asp-action="Register" class="fw-bold text-dark">Inscrivez-vous</a> pour contacter cet expert.
+                        </div>
+                    }
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="mt-5">
+        <div class="d-flex justify-content-between align-items-center mb-4">
+            <h4 class="fw-800 text-dark">Avis de la communauté (@(Model.Reviews?.Count ?? 0))</h4>
+            
+            @if (User.Identity?.IsAuthenticated == true && !User.IsInRole("Provider"))
+            {
+                @* On précise l'action ET le contrôleur (souvent ProviderController) *@
+            <a asp-controller="Provider" asp-action="AddReview" asp-route-id="@Model.Id" class="btn btn-vibrant-mada">
+                <i class="bi bi-star-fill me-2"></i> Laisser un avis
+            </a>
+            }
+        </div>
+
+        <div class="row g-3">
+            @if (Model.Reviews != null && Model.Reviews.Any())
+            {
+                @foreach (var review in Model.Reviews.OrderByDescending(r => r.DatePosted).Take(4)) {
+                    <div class="col-md-6">
+                        <div class="review-mini-card p-4">
+                            <div class="d-flex justify-content-between align-items-start mb-2">
+                                <div>
+                                    <span class="fw-bold d-block">@review.CustomerName</span>
+                                    <small class="text-muted">Le @review.DatePosted.ToString("dd/MM/yyyy")</small>
+                                </div>
+                                <div class="text-warning">
+                                    @for(int i=0; i < review.Rating; i++){ <i class="bi bi-star-fill"></i> }
+                                    @for(int i=review.Rating; i < 5; i++){ <i class="bi bi-star text-light"></i> }
+                                </div>
+                            </div>
+                            <p class="text-muted small italic mb-0 mt-2">"@review.Comment"</p>
+                        </div>
+                    </div>
+                }
+            }
+            else
+            {
+                <div class="col-12 text-center py-5 bg-white rounded-4 border-dashed border">
+                    <i class="bi bi-chat-left-dots display-4 text-light mb-3 d-block"></i>
+                    <p class="text-muted">Aucun avis pour le moment. Soyez le premier à témoigner !</p>
+                </div>
+            }
+        </div>
+    </div>
+</div>
