@@ -129,7 +129,7 @@
             <div class="profile-header-card p-4 p-md-5">
                 <div class="d-flex justify-content-between align-items-center mb-4">
                     <h5 class="fw-bold mb-0">Avis clients</h5>
-                    @if (User.Identity?.IsAuthenticated == true && !User.IsInRole("Provider")) {
+                    @if (canSeeContact && !User.IsInRole("Provider")) {
                         <a asp-action="AddReview" asp-route-id="@Model.Id" class="btn btn-outline-primary btn-action btn-sm">
                             Laisser un avis
                         </a>

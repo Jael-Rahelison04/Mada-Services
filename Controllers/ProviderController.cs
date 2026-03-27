@@ -22,9 +22,9 @@ namespace MadaServices.Controllers
         {
             var userEmail = User.Identity?.Name;
 
-            var provider = await _context.Providers
+            var provider = await _context.Users.OfType<Provider>()
                 .Include(p => p.Reviews)
-                .FirstOrDefaultAsync(p => p.Email == userEmail); 
+                .FirstOrDefaultAsync(p => p.Email == userEmail);
 
             if (provider == null) 
                 return NotFound("Profil prestataire non trouvé.");
@@ -35,9 +35,7 @@ namespace MadaServices.Controllers
         // --- RECHERCHE AVANCÉE ---
         public async Task<IActionResult> Search(string query, string city)
         {
-            var providersQuery = _context.Providers
-                .Include(p => p.Reviews) 
-                .AsQueryable();
+            var providersQuery = _context.Users.OfType<Provider>().Include(p => p.Reviews).AsQueryable();
 
             if (!string.IsNullOrEmpty(query))
             {
@@ -67,7 +65,7 @@ namespace MadaServices.Controllers
         {
             if (id == null) return NotFound();
 
-            var provider = await _context.Providers
+            var provider = await _context.Users.OfType<Provider>()
                 .Include(p => p.Reviews)
                 .FirstOrDefaultAsync(m => m.Id == id);
 
@@ -83,7 +81,7 @@ namespace MadaServices.Controllers
         [Authorize]
         public async Task<IActionResult> AddReview(int id)
         {
-            var provider = await _context.Providers.FindAsync(id);
+            var provider = await _context.Users.OfType<Provider>().FirstOrDefaultAsync(p => p.Id == id);
             if (provider == null) return NotFound();
 
             // Sécurité : Un prestataire ne peut pas se noter lui-même (via son email)

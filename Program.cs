@@ -32,16 +32,7 @@ var app = builder.Build();
 using (var scope = app.Services.CreateScope())
 {
     var services = scope.ServiceProvider;
-    try 
-    {
-        // Appel de la méthode statique du fichier Data/DbInitializer.cs
-        await DbInitializer.SeedRolesAndUsers(services);
-    }
-    catch (Exception ex)
-    {
-        var logger = services.GetRequiredService<ILogger<Program>>();
-        logger.LogError(ex, "Une erreur est survenue lors de l'initialisation des données.");
-    }
+    await DbInitializer.SeedRolesAndUsers(services);
 }
 
 // Configuration du pipeline HTTP

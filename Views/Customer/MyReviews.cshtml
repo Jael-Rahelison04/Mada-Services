@@ -62,9 +62,12 @@
                                     </li>
                                     <li><hr class="dropdown-divider opacity-50"></li>
                                     <li>
-                                        <a class="dropdown-item text-danger" href="#">
-                                            <i class="bi bi-trash me-2"></i> Supprimer l'avis
-                                        </a>
+                                        <form asp-action="DeleteReview" asp-route-id="@review.Id" method="post" style="display:inline;">
+                                            @Html.AntiForgeryToken()
+                                            <button type="submit" class="dropdown-item text-danger" onclick="return confirm('Supprimer cet avis ?')">
+                                                <i class="bi bi-trash me-2"></i> Supprimer l'avis
+                                            </button>
+                                        </form>
                                     </li>
                                 </ul>
                             </div>

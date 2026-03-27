@@ -129,7 +129,7 @@
 
                             <div class="d-flex justify-content-between align-items-center">
                                 <span class="fw-bold fs-5 text-dark">@pro.HourlyRate.ToString("N0") Ar<small class="text-muted fw-normal">/h</small></span>
-                                <a asp-action="Details" asp-route-id="@pro.Id" class="btn btn-view px-4 py-2">Voir le profil</a>
+                                <a asp-controller="Provider" asp-action="Details" asp-route-id="@pro.Id" class="btn btn-view px-4 py-2">Voir le profil</a>
                             </div>
                         </div>
                     </div>

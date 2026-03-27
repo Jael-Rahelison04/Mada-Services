@@ -27,7 +27,13 @@ namespace MadaServices.Controllers
                 .ToListAsync(); 
 
             ViewBag.TotalReviews = myReviews.Count;
-            ViewBag.LastProvider = myReviews.FirstOrDefault()?.Provider?.FullName ?? "Aucun";
+            var lastProviderId = myReviews.FirstOrDefault()?.ProviderId;
+                if (lastProviderId.HasValue)
+                {
+                    var lastProvider = await _context.Users.OfType<Provider>()
+                        .FirstOrDefaultAsync(p => p.Id == lastProviderId.Value);
+                    ViewBag.LastProvider = lastProvider?.FullName ?? "Aucun";
+                }
 
             return View(myReviews.Take(3).ToList());
         }

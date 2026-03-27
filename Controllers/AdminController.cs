@@ -20,7 +20,7 @@ namespace MadaServices.Controllers
         // Liste des prestataires en attente de vérification
         public async Task<IActionResult> Index()
         {
-            var pendingProviders = await _context.Providers
+            var pendingProviders = await _context.Users.OfType<Provider>()
                 .Where(p => p.HasSubmittedDocs && !p.IsVerified)
                 .ToListAsync();
 
@@ -31,7 +31,7 @@ namespace MadaServices.Controllers
         [HttpPost]
         public async Task<IActionResult> VerifyProvider(int id)
         {
-            var provider = await _context.Providers.FindAsync(id);
+            var provider = await _context.Users.OfType<Provider>().FirstOrDefaultAsync(p => p.Id == id);
             if (provider != null)
             {
                 provider.IsVerified = true;
@@ -46,7 +46,7 @@ namespace MadaServices.Controllers
         [HttpPost]
         public async Task<IActionResult> RejectProvider(int id)
         {
-            var provider = await _context.Providers.FindAsync(id);
+            var provider = await _context.Users.OfType<Provider>().FirstOrDefaultAsync(p => p.Id == id);
             if (provider != null)
             {
                 provider.HasSubmittedDocs = false; // Permet au prestataire de renvoyer un document
