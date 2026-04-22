@@ -1,0 +1,195 @@
+@model MadaServices.Models.SettingsViewModel
+@{
+    ViewData["Title"] = "Mon Profil - MadaServices";
+}
+
+<link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;600;700;800&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.1/font/bootstrap-icons.css">
+
+<style>
+    :root {
+        --glass-bg: rgba(255, 255, 255, 0.95);
+        --brand-blue: #4f46e5;
+        --soft-gray: #f1f5f9;
+        --success-soft: #ecfdf5;
+    }
+
+    body { 
+        background: linear-gradient(135deg, #f8fafc 0%, #e2e8f0 100%); 
+        font-family: 'Outfit', sans-serif; 
+        min-height: 100vh; 
+    }
+
+    .glass-card {
+        background: var(--glass-bg); 
+        backdrop-filter: blur(10px);
+        border-radius: 32px; 
+        border: 1px solid rgba(255, 255, 255, 0.3);
+        box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.08);
+        padding: 50px; 
+        max-width: 1000px; 
+        margin: 40px auto;
+    }
+
+    /* Zone Avatar */
+    .avatar-container { position: relative; width: 160px; height: 160px; margin: 0 auto 25px; }
+    
+    .avatar-main {
+        width: 160px; height: 160px; border-radius: 40px; object-fit: cover;
+        border: 6px solid white; box-shadow: 0 15px 30px rgba(0,0,0,0.1);
+        background: #e2e8f0; transition: 0.4s ease;
+    }
+
+    .btn-edit-photo {
+        position: absolute; bottom: -12px; right: -12px;
+        background: var(--brand-blue); color: white; width: 48px; height: 48px;
+        border-radius: 16px; border: 4px solid white; display: flex;
+        align-items: center; justify-content: center; cursor: pointer;
+        box-shadow: 0 8px 15px rgba(79, 70, 229, 0.3); transition: 0.3s;
+    }
+    .btn-edit-photo:hover { transform: scale(1.1) rotate(5deg); background: #3730a3; }
+
+    /* Bouton Profil Public Spécial */
+    .btn-view-public {
+        background: white;
+        color: var(--brand-blue);
+        border: 2px solid var(--brand-blue);
+        border-radius: 14px;
+        padding: 12px;
+        font-weight: 700;
+        text-decoration: none;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        transition: all 0.3s ease;
+        margin-top: 15px;
+    }
+    .btn-view-public:hover {
+        background: var(--brand-blue);
+        color: white;
+        transform: translateY(-2px);
+        box-shadow: 0 10px 15px -3px rgba(79, 70, 229, 0.2);
+    }
+
+    /* Formulaire */
+    .form-label { font-weight: 700; color: #475569; font-size: 0.85rem; text-transform: uppercase; letter-spacing: 0.5px; }
+    
+    .custom-input {
+        background: var(--soft-gray); border: 2px solid transparent; border-radius: 16px;
+        padding: 14px 18px; font-weight: 500; transition: 0.3s;
+    }
+    .custom-input:focus {
+        background: white; border-color: var(--brand-blue);
+        box-shadow: 0 0 0 4px rgba(79, 70, 229, 0.1); outline: none;
+    }
+
+    .btn-submit-profile {
+        background: var(--brand-blue); color: white; border: none; border-radius: 18px;
+        padding: 16px; font-weight: 800; width: 100%; transition: 0.3s;
+        box-shadow: 0 10px 20px -5px rgba(79, 70, 229, 0.4);
+    }
+    .btn-submit-profile:hover { background: #3730a3; transform: translateY(-3px); }
+
+    .sidebar-info { border-right: 1px solid #e2e8f0; padding-right: 40px; }
+    #imageUpload { display: none; }
+</style>
+
+<div class="container">
+    <div class="glass-card">
+        <form asp-action="UpdateProfile" method="post" enctype="multipart/form-data">
+            <input type="hidden" asp-for="ImageUrl" id="currentImageUrl" />
+
+            <div class="row g-5">
+                <div class="col-md-4 text-center sidebar-info">
+                    <div class="avatar-container">
+                        <img id="imagePreview" src="@(string.IsNullOrEmpty(Model.ImageUrl) ? "/images/default-avatar.png" : Model.ImageUrl)" class="avatar-main" alt="Profil">
+                        <label for="imageUpload" class="btn-edit-photo">
+                            <i class="bi bi-camera-fill fs-5"></i>
+                        </label>
+                        <input type="file" asp-for="ProfilePicture" id="imageUpload" accept="image/*">
+                    </div>
+                    
+                    <h4 class="fw-800 mb-1">@Model.FullName</h4>
+                    <p class="text-muted small mb-4">Compte Utilisateur</p>
+
+                    <div class="p-3 rounded-4 bg-light text-start mb-3">
+                        <div class="d-flex justify-content-between mb-2">
+                            <span class="small fw-700">Profil complété</span>
+                            <span class="small fw-800 text-primary">90%</span>
+                        </div>
+                        <div class="progress" style="height: 8px; border-radius: 10px;">
+                            <div class="progress-bar bg-primary" style="width: 90%"></div>
+                        </div>
+
+                        <a asp-controller="Customer" asp-action="PublicProfile" asp-route-id="@Model.Id" class="btn-view-public">
+                            <i class="bi bi-eye-fill me-2"></i>Voir profil public
+                        </a>
+                    </div>
+
+                    <button type="button" class="btn btn-light w-100 rounded-4 fw-600 mb-2 py-3 border">
+                        <i class="bi bi-shield-lock me-2"></i>Mot de passe
+                    </button>
+                </div>
+
+                <div class="col-md-8 ps-md-4">
+                    <div class="d-flex justify-content-between align-items-center mb-5">
+                        <h2 class="fw-800 mb-0">Paramètres</h2>
+                        <a asp-controller="Home" asp-action="Index" class="btn btn-sm btn-outline-secondary rounded-pill px-3">Retour</a>
+                    </div>
+
+                    @if (TempData["Success"] != null)
+                    {
+                        <div class="alert alert-success border-0 rounded-4 shadow-sm mb-4">
+                            <i class="bi bi-check-circle-fill me-2"></i> @TempData["Success"]
+                        </div>
+                    }
+
+                    <div class="row g-4">
+                        <div class="col-12">
+                            <label class="form-label">Nom complet</label>
+                            <input asp-for="FullName" class="form-control custom-input" placeholder="Votre nom complet">
+                        </div>
+                        <div class="col-md-12">
+                            <label class="form-label">Email (Non modifiable)</label>
+                            <input asp-for="Email" class="form-control custom-input" readonly style="opacity: 0.7; cursor: not-allowed;">
+                        </div>
+                        <div class="col-md-6">
+                            <label class="form-label">Téléphone</label>
+                            <input asp-for="PhoneNumber" class="form-control custom-input" placeholder="+261 ...">
+                        </div>
+                        <div class="col-md-6">
+                            <label class="form-label">Ville / Localisation</label>
+                            <input asp-for="Address" class="form-control custom-input" placeholder="Ex: Antananarivo">
+                        </div>
+                        
+                        <div class="col-12 mt-5">
+                            <button type="submit" class="btn btn-submit-profile">
+                                <i class="bi bi-save2-fill me-2"></i>Enregistrer les modifications
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </form>
+    </div>
+</div>
+
+<script>
+    // Aperçu de l'image avant l'envoi
+    document.getElementById('imageUpload').onchange = function (evt) {
+        const [file] = this.files;
+        if (file) {
+            if(file.size > 5 * 1024 * 1024) {
+                alert("L'image est trop lourde (max 5 Mo).");
+                this.value = '';
+                return;
+            }
+
+            const reader = new FileReader();
+            reader.onload = function(e) {
+                document.getElementById('imagePreview').src = e.target.result;
+            };
+            reader.readAsDataURL(file);
+        }
+    }
+</script>

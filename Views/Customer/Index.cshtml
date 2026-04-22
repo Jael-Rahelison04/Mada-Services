@@ -1,0 +1,185 @@
+@model IEnumerable<MadaServices.Models.Review>
+@{
+    ViewData["Title"] = "Espace Client";
+}
+
+<link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;600;700;800&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.1/font/bootstrap-icons.css">
+
+<style>
+    :root { --primary: #4f46e5; --bg: #f8fafc; --card: #ffffff; }
+    body { background: var(--bg); font-family: 'Outfit', sans-serif; color: #1e293b; }
+
+    /* HEADER */
+    .dash-header { background: var(--card); padding: 15px 0; border-bottom: 1px solid #e2e8f0; margin-bottom: 25px; }
+    .date-text { font-size: 0.75rem; color: #64748b; font-weight: 600; text-transform: uppercase; }
+    
+    /* CARDS */
+    .stat-box { 
+        background: var(--card); border-radius: 18px; padding: 20px; 
+        border: 1px solid #e2e8f0; transition: 0.2s; height: 100%;
+    }
+    .stat-box:hover { border-color: var(--primary); }
+    .icon-sm { font-size: 1.2rem; margin-bottom: 10px; display: block; }
+
+    /* BUTTONS */
+    .btn-action { 
+        background: var(--primary); color: white !important; border-radius: 10px; 
+        padding: 8px 16px; font-weight: 700; font-size: 0.8rem; border: none; text-decoration: none;
+    }
+    .link-flat { font-size: 0.75rem; font-weight: 700; color: var(--primary); text-decoration: none; text-transform: uppercase; cursor: pointer; }
+
+    /* TABLE */
+    .table-card { background: var(--card); border-radius: 18px; border: 1px solid #e2e8f0; overflow: hidden; }
+    .table thead th { font-size: 0.65rem; text-transform: uppercase; color: #94a3b8; padding: 12px 20px; }
+    .table td { padding: 12px 20px; font-size: 0.85rem; }
+
+    /* CONTACT STYLE */
+    .contact-link { color: #10b981; text-decoration: none; font-weight: 600; display: flex; align-items: center; gap: 5px; }
+    .contact-link:hover { color: #059669; }
+
+    /* INPUTS */
+    .form-custom { background: #f1f5f9; border: none; border-radius: 10px; padding: 10px; font-size: 0.85rem; }
+</style>
+
+<div class="dash-header">
+    <div class="container d-flex justify-content-between align-items-center">
+        <div>
+            <div class="date-text">@DateTime.Now.ToString("dd MMM yyyy")</div>
+            <h5 class="fw-800 mb-0">@User.Identity?.Name</h5>
+        </div>
+        <a asp-controller="Home" asp-action="Index" class="btn btn-light btn-sm rounded-pill fw-700 border">
+            <i class="bi bi-plus-lg me-1"></i> Nouveau projet
+        </a>
+    </div>
+</div>
+
+<div class="container">
+    <div class="row g-3 mb-4">
+        <div class="col-md-4">
+            <div class="stat-box">
+                <i class="bi bi-clock-history text-primary icon-sm"></i>
+                <div class="d-flex justify-content-between align-items-end">
+                    <h6 class="fw-700 mb-0">Activités</h6>
+                    <a asp-action="MyBookings" class="link-flat">Historique</a>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-md-4">
+            <div class="stat-box">
+                <i class="bi bi-star-fill text-warning icon-sm"></i>
+                <div class="d-flex justify-content-between align-items-end">
+                    <h6 class="fw-700 mb-0">@(ViewBag.TotalReviews ?? 0) Avis</h6>
+                    <span class="link-flat" data-bs-toggle="modal" data-bs-target="#reviewModal">Ajouter un avis</span>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-md-4">
+            <div class="stat-box">
+                <i class="bi bi-whatsapp text-success icon-sm"></i>
+                <div class="d-flex justify-content-between align-items-end">
+                    <h6 class="fw-700 mb-0">Aide</h6>
+                    <a href="https://wa.me/261340000000" class="link-flat">Contact Support</a>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="table-card">
+        <div class="p-3 border-bottom"><span class="fw-800 small text-uppercase">Contacts Récents</span></div>
+        <div class="table-responsive">
+            <table class="table align-middle mb-0">
+                <thead>
+                    <tr>
+                        <th>Nom</th>
+                        <th>Métier</th>
+                        <th>Contact</th>
+                        <th class="text-end">Action</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    @if (ViewBag.ProvidersList != null) {
+                        foreach (var p in ViewBag.ProvidersList) {
+                            <tr>
+                                <td class="fw-600">@p.FullName</td>
+                                <td class="text-muted">@p.JobTitle</td>
+                                <td>
+                                    <a href="https://wa.me/@p.PhoneNumber" class="contact-link" target="_blank">
+                                        <i class="bi bi-whatsapp"></i> @p.PhoneNumber
+                                    </a>
+                                </td>
+                                <td class="text-end">
+                                    <button class="btn-action" onclick="openBookingModal('@p.Id', '@p.FullName', '@p.PhoneNumber')">Réserver</button>
+                                </td>
+                            </tr>
+                        }
+                    }
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+
+<div class="modal fade" id="reviewModal" tabindex="-1">
+    <div class="modal-dialog modal-sm modal-dialog-centered">
+        <div class="modal-content border-0 shadow-lg" style="border-radius:20px;">
+            <div class="modal-body p-4">
+                <h6 class="fw-800 mb-3 text-center">Noter un expert</h6>
+                <form asp-action="CreateReview" method="post">
+                    <div class="mb-2">
+                        <label class="small fw-700 text-muted">PRESTATAIRE</label>
+                        <select name="ProviderId" class="form-select form-custom" required>
+                            @if (ViewBag.ProvidersList != null) {
+                                foreach (var p in ViewBag.ProvidersList) {
+                                    <option value="@p.Id">@p.FullName</option>
+                                }
+                            }
+                        </select>
+                    </div>
+                    <div class="mb-2 text-center">
+                        <label class="small fw-700 text-muted d-block">NOTE</label>
+                        <input type="range" name="Rating" min="1" max="5" step="1" class="form-range" id="ratingRange" value="5">
+                        <div id="ratingVal" class="fw-800 text-warning">5 / 5</div>
+                    </div>
+                    <div class="mb-3">
+                        <label class="small fw-700 text-muted">VOTRE AVIS</label>
+                        <textarea name="Comment" class="form-control form-custom" placeholder="Comment s'est passé le travail ?" rows="3" required></textarea>
+                    </div>
+                    <button type="submit" class="btn-action w-100 py-2">Publier l'avis</button>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="modal fade" id="bookingModal" tabindex="-1">
+    <div class="modal-dialog modal-sm modal-dialog-centered">
+        <div class="modal-content border-0 shadow-lg" style="border-radius:20px;">
+            <div class="modal-body p-4 text-center">
+                <h6 class="fw-800 mb-1" id="bookingProviderName">--</h6>
+                <div id="bookingContactText" class="small text-success fw-600 mb-3"></div>
+                <form asp-action="CreateBooking" method="post">
+                    <input type="hidden" name="ProviderId" id="inputProviderId" />
+                    <input type="text" name="ServiceName" class="form-control mb-2 form-custom" placeholder="Service (ex: Plomberie)" required />
+                    <input type="number" name="TotalPrice" class="form-control mb-3 form-custom" placeholder="Budget (AR)" required />
+                    <button type="submit" class="btn-action w-100 py-2">Confirmer</button>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+    function openBookingModal(id, name, phone) {
+        document.getElementById('inputProviderId').value = id;
+        document.getElementById('bookingProviderName').innerText = name;
+        document.getElementById('bookingContactText').innerText = phone ? "Tél: " + phone : "";
+        new bootstrap.Modal(document.getElementById('bookingModal')).show();
+    }
+
+    document.getElementById('ratingRange')?.addEventListener('input', function(e) {
+        document.getElementById('ratingVal').innerText = e.target.value + ' / 5';
+    });
+</script>

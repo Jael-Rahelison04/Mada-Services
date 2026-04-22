@@ -1,0 +1,105 @@
+@model MadaServices.Models.Provider
+@{
+    ViewData["Title"] = "Ma Réputation";
+    // Calcul de la moyenne
+    double average = Model.Reviews != null && Model.Reviews.Any() 
+                     ? Model.Reviews.Average(r => r.Rating) 
+                     : 0;
+}
+
+<div class="container py-5">
+    <div class="row justify-content-center">
+        <div class="col-lg-10">
+            
+            <div class="card border-0 shadow-sm rounded-4 p-4 mb-4 text-center" style="background: linear-gradient(135deg, var(--brand-dark) 0%, var(--brand-main) 100%); color: white;">
+                <h2 class="fw-800 mb-2">Ma Réputation Professionnelle</h2>
+                <div class="d-flex justify-content-center align-items-center gap-3">
+                    <div class="display-3 fw-800">@average.ToString("F1")</div>
+                    <div class="text-start">
+                        <div class="text-warning fs-4">
+                            @for (int i = 1; i <= 5; i++)
+                            {
+                                <i class="bi bi-star@(i <= Math.Round(average) ? "-fill" : "")"></i>
+                            }
+                        </div>
+                        <div class="opacity-75">Basé sur @(Model.Reviews?.Count ?? 0) avis clients</div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="card border-0 shadow-sm rounded-4 p-4 p-md-5">
+                <h4 class="fw-800 mb-4 text-brand-dark">Détails des retours clients</h4>
+
+                @if (Model.Reviews != null && Model.Reviews.Any())
+                {
+                    <div class="table-responsive">
+                        <table class="table table-hover align-middle">
+                            <thead class="table-light">
+                                <tr>
+                                    <th class="border-0 rounded-start">Client</th>
+                                    <th class="border-0">Note</th>
+                                    <th class="border-0">Commentaire</th>
+                                    <th class="border-0 rounded-end text-end">Date</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                @foreach (var review in Model.Reviews.OrderByDescending(r => r.DatePosted))
+                                {
+                                    <tr>
+                                        <td class="fw-600">
+                                            <div class="d-flex align-items-center">
+                                                <div class="rounded-circle bg-light text-brand-main d-flex align-items-center justify-content-center me-2" style="width: 35px; height: 35px; font-size: 0.8rem;">
+                                                    <i class="bi bi-person"></i>
+                                                </div>
+                                                @review.CustomerName.Split('@')[0] @* Affiche le début de l'email si c'est un email *@
+                                            </div>
+                                        </td>
+                                        <td>
+                                            <span class="badge rounded-pill bg-warning text-dark px-3">
+                                                @review.Rating <i class="bi bi-star-fill ms-1"></i>
+                                            </span>
+                                        </td>
+                                        <td class="text-muted italic">
+                                            "@review.Comment"
+                                        </td>
+                                        <td class="text-end text-muted small">
+                                            @review.DatePosted.ToString("dd/MM/yyyy")
+                                        </td>
+                                    </tr>
+                                }
+                            </tbody>
+                        </table>
+                    </div>
+                }
+                else
+                {
+                    <div class="text-center py-5">
+                        <i class="bi bi-chat-left-dots display-1 text-light mb-3 d-block"></i>
+                        <h5 class="text-muted">Vous n'avez pas encore reçu d'avis.</h5>
+                        <p class="small text-muted">Partagez votre profil pour encourager vos clients à laisser un commentaire !</p>
+                    </div>
+                }
+            </div>
+            
+            <div class="text-center mt-4">
+                <a asp-action="Details" asp-route-id="@Model.Id" class="btn btn-outline-secondary rounded-pill px-4">
+                    <i class="bi bi-arrow-left me-2"></i>Retour à mon profil
+                </a>
+            </div>
+
+        </div>
+    </div>
+</div>
+
+<style>
+    /* Rappel des couleurs si elles ne sont pas dans site.css */
+    :root {
+        --brand-dark: #0f4c5c;
+        --brand-main: #14748f;
+    }
+    .fw-800 { font-weight: 800; }
+    .fw-600 { font-weight: 600; }
+    .text-brand-dark { color: var(--brand-dark); }
+    .text-brand-main { color: var(--brand-main); }
+    .italic { font-style: italic; }
+</style>

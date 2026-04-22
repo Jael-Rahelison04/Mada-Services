@@ -1,0 +1,403 @@
+@model MadaServices.Models.Provider
+@{
+    ViewData["Title"] = "Tableau de Bord Pro - MadaServices";
+}
+
+<link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;600;800&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.0/font/bootstrap-icons.css">
+
+<div class="container py-5">
+    @* --- EN-TÊTE DU PROFIL (Modifié avec Contact & Avis) --- *@
+    <header class="row align-items-center mb-5 gy-3">
+        <div class="col-md-8">
+            <div class="d-flex align-items-center">
+                <div class="position-relative avatar-container" title="Changer la photo de profil">
+                    <form asp-controller="Provider" asp-action="UploadAvatar" method="post" enctype="multipart/form-data" id="avatarForm">
+                        @Html.AntiForgeryToken()
+                        <input type="file" name="avatarFile" id="avatarInput" class="d-none" onchange="document.getElementById('avatarForm').submit()">
+                        <label for="avatarInput" class="mb-0 cursor-pointer">
+                            <div class="rounded-circle border border-4 border-white shadow-sm overflow-hidden position-relative avatar-wrapper">
+                                @if (!string.IsNullOrEmpty(Model.ProfileImageUrl)) {
+                                    <img src="@Model.ProfileImageUrl" class="w-100 h-100" style="object-fit: cover;">
+                                } else {
+                                    <div class="w-100 h-100 d-flex align-items-center justify-content-center bg-gradient-pro text-white">
+                                        <span class="fs-2 fw-bold">@Model.FullName?[0]</span>
+                                    </div>
+                                }
+                                <div class="avatar-overlay">
+                                    <i class="bi bi-camera-fill text-white fs-5"></i>
+                                </div>
+                            </div>
+                        </label>
+                    </form>
+                    @if(Model.IsVerified) {
+                        <span class="position-absolute bottom-0 end-0 bg-success border border-2 border-white rounded-circle p-1 shadow">
+                            <i class="bi bi-patch-check-fill text-white" style="font-size: 0.8rem;"></i>
+                        </span>
+                    }
+                </div>
+
+                <div class="ms-4">
+                    <h2 class="fw-800 text-dark mb-1">@Model.FullName</h2>
+                    
+                    @* INFOS DE CONTACT *@
+                    <div class="d-flex flex-wrap align-items-center gap-3 mb-2 small text-muted">
+                        <span title="Email professionnel"><i class="bi bi-envelope-at me-1 text-primary"></i>@Model.Email</span>
+                        @if(!string.IsNullOrEmpty(Model.PhoneNumber)) {
+                            <span title="Téléphone"><i class="bi bi-telephone me-1 text-primary"></i>@Model.PhoneNumber</span>
+                        }
+                    </div>
+
+                    <div class="d-flex align-items-center flex-wrap gap-2">
+                        <span class="badge rounded-pill px-3 bg-white text-dark border">@(Model.JobTitle ?? "Prestataire")</span>
+                        
+                        @* NOMBRE D'AVIS & NOTE *@
+                        <div class="d-flex align-items-center bg-white rounded-pill px-2 border py-1 shadow-xs">
+                            <i class="bi bi-star-fill text-warning me-1 small"></i>
+                            <span class="fw-bold text-dark small">@Model.AverageRating.ToString("F1")</span>
+                            <span class="text-muted small ms-1">(@(Model.Reviews?.Count ?? 0) avis)</span>
+                        </div>
+
+                        @if(Model.IsPaused) {
+                            <span class="badge bg-warning text-dark rounded-pill shadow-sm animate-pulse">
+                                <i class="bi bi-eye-slash-fill me-1"></i>En pause
+                            </span>
+                        } else {
+                            <span class="badge bg-success text-white rounded-pill shadow-sm">
+                                <i class="bi bi-eye-fill me-1"></i>Profil Public
+                            </span>
+                        }
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-4 text-md-end">
+            <form asp-controller="Provider" asp-action="TogglePause" method="post" class="d-inline">
+                @Html.AntiForgeryToken()
+                <button type="submit" class="btn @(Model.IsPaused ? "btn-success" : "btn-outline-warning") rounded-pill px-4 fw-600 shadow-sm transition-all">
+                    <i class="bi @(Model.IsPaused ? "bi-play-circle-fill" : "bi-pause-circle-fill") me-1"></i>
+                    @(Model.IsPaused ? "Réactiver mon profil" : "Mettre en pause")
+                </button>
+            </form>
+        </div>
+    </header>
+
+    <div class="row g-4">
+        @* --- NAVIGATION LATÉRALE --- *@
+        <div class="col-lg-3">
+            <div class="nav flex-column nav-pills sidebar-nav shadow-sm p-3 bg-white rounded-4 border sticky-top" style="top: 20px;" id="v-pills-tab" role="tablist">
+                <button class="nav-link active mb-2" data-bs-toggle="pill" data-bs-target="#profile">
+                    <i class="bi bi-person-gear me-2"></i>Mon Profil
+                </button>
+                <button class="nav-link mb-2 d-flex justify-content-between align-items-center" data-bs-toggle="pill" data-bs-target="#missions">
+                    <span><i class="bi bi-briefcase me-2"></i>Mes Missions</span>
+                    <span class="badge rounded-pill bg-danger">@(Model.Bookings?.Count(b => b.Status == "Pending") ?? 0)</span>
+                </button>
+                <button class="nav-link mb-2" data-bs-toggle="pill" data-bs-target="#calendar">
+                    <i class="bi bi-calendar3 me-2"></i>Disponibilités
+                </button>
+                <button class="nav-link mb-2" data-bs-toggle="pill" data-bs-target="#wallet">
+                    <i class="bi bi-wallet2 me-2"></i>Portefeuille
+                </button>
+                <hr class="my-2 opacity-10">
+                <button class="nav-link mb-2 d-flex justify-content-between align-items-center" data-bs-toggle="pill" data-bs-target="#portfolio">
+                    <span><i class="bi bi-grid-1x2 me-2"></i>Portfolio</span>
+                    <span class="badge rounded-pill bg-light text-dark border">@(Model.PortfolioItems?.Count ?? 0)</span>
+                </button>
+                <button class="nav-link mb-2" data-bs-toggle="pill" data-bs-target="#reputation">
+                    <i class="bi bi-star me-2"></i>Avis (@(Model.Reviews?.Count ?? 0))
+                </button>
+                <button class="nav-link" data-bs-toggle="pill" data-bs-target="#verification">
+                    <i class="bi bi-shield-check me-2"></i>Vérification
+                </button>
+            </div>
+        </div>
+
+        @* --- CONTENU PRINCIPAL --- *@
+        <div class="col-lg-9">
+            <div class="tab-content bg-white rounded-4 shadow-sm p-4 p-md-5 border min-vh-75">
+                
+                @* 1. SECTION : PROFIL (Mis à jour avec Téléphone) *@
+                <div class="tab-pane fade show active" id="profile">
+                    <h4 class="fw-800 mb-4">Informations Publiques</h4>
+                    <form asp-controller="Provider" asp-action="UpdateProfile" method="post">
+                        @Html.AntiForgeryToken()
+                        <div class="row g-4">
+                            <div class="col-md-6">
+                                <label class="label-pro">MÉTIER / TITRE</label>
+                                <input name="JobTitle" value="@Model.JobTitle" class="form-control input-pro" required>
+                            </div>
+                            <div class="col-md-6">
+                                <label class="label-pro">VILLE</label>
+                                <input name="City" value="@Model.City" class="form-control input-pro" required>
+                            </div>
+                            <div class="col-md-6">
+                                <label class="label-pro">TARIF HORAIRE (Ar)</label>
+                                <input type="number" name="HourlyRate" value="@Model.HourlyRate" class="form-control input-pro" required>
+                            </div>
+                            <div class="col-md-6">
+                                <label class="label-pro">TÉLÉPHONE DE CONTACT</label>
+                                <input name="PhoneNumber" value="@Model.PhoneNumber" class="form-control input-pro" placeholder="+261 ...">
+                            </div>
+                            <div class="col-md-12">
+                                <label class="label-pro">DESCRIPTION</label>
+                                <textarea name="Description" class="form-control input-pro" rows="4">@Model.Description</textarea>
+                            </div>
+                            <div class="col-12 text-end mt-4">
+                                <button type="submit" class="btn btn-primary-mada px-5 rounded-pill shadow-sm">Mettre à jour mon profil</button>
+                            </div>
+                        </div>
+                    </form>
+                </div>
+
+                @* 2. SECTION : MISSIONS *@
+                <div class="tab-pane fade" id="missions">
+                    <h4 class="fw-800 mb-4">Suivi des Missions</h4>
+                    <div class="table-responsive">
+                        <table class="table table-hover align-middle">
+                            <thead class="table-light">
+                                <tr>
+                                    <th>Client / Service</th>
+                                    <th>Prix</th>
+                                    <th>Statut</th>
+                                    <th class="text-end">Actions</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                @if (Model.Bookings?.Any() == true) {
+                                    @foreach (var booking in Model.Bookings.OrderByDescending(b => b.CreatedAt)) {
+                                        <tr>
+                                            <td>
+                                                <strong>@booking.CustomerName</strong><br>
+                                                <small class="text-muted">@booking.ServiceName</small>
+                                            </td>
+                                            <td>@booking.TotalPrice.ToString("N0") Ar</td>
+                                            <td>
+                                                @if(booking.Status == "Pending") { <span class="badge bg-warning-soft text-warning rounded-pill">En attente</span> }
+                                                else if(booking.Status == "Completed") { <span class="badge bg-success-soft text-success rounded-pill">Terminé</span> }
+                                                else { <span class="badge bg-primary-soft text-primary rounded-pill">@booking.Status</span> }
+                                            </td>
+                                            <td class="text-end">
+                                                @if(booking.Status == "Pending") {
+                                                    <form asp-action="UpdateBookingStatus" method="post" class="d-inline">
+                                                        <input type="hidden" name="bookingId" value="@booking.Id" />
+                                                        <input type="hidden" name="status" value="Accepted" />
+                                                        <button type="submit" class="btn btn-sm btn-success rounded-pill">Accepter</button>
+                                                    </form>
+                                                }
+                                                @if(booking.Status == "Accepted") {
+                                                    <form asp-action="UpdateBookingStatus" method="post" class="d-inline">
+                                                        <input type="hidden" name="bookingId" value="@booking.Id" />
+                                                        <input type="hidden" name="status" value="Completed" />
+                                                        <button type="submit" class="btn btn-sm btn-outline-primary rounded-pill">Terminer</button>
+                                                    </form>
+                                                }
+                                            </td>
+                                        </tr>
+                                    }
+                                } else {
+                                    <tr><td colspan="4" class="text-center py-4 text-muted">Aucune mission pour le moment.</td></tr>
+                                }
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+
+                @* 3. SECTION : CALENDRIER *@
+                <div class="tab-pane fade" id="calendar">
+                    <h4 class="fw-800 mb-4">Disponibilités Hebdomadaires</h4>
+                    <div class="p-4 bg-light rounded-4">
+                        <div class="row g-3">
+                            @foreach (var jour in new[] { "Lundi", "Mardi", "Mercredi", "Jeudi", "Vendredi", "Samedi", "Dimanche" }) {
+                                var isAvailable = Model.Availabilities?.Any(a => a.DayOfWeek == jour && a.IsActive) ?? false;
+                                <div class="col-md-6">
+                                    <div class="d-flex justify-content-between align-items-center p-3 bg-white rounded-3 border shadow-sm">
+                                        <span class="fw-600">@jour</span>
+                                        <div class="form-check form-switch">
+                                            <input class="form-check-input availability-toggle" type="checkbox" 
+                                                   data-day="@jour" @(isAvailable ? "checked" : "")>
+                                        </div>
+                                    </div>
+                                </div>
+                            }
+                        </div>
+                    </div>
+                </div>
+
+                @* 4. SECTION : PORTEFEUILLE *@
+                <div class="tab-pane fade" id="wallet">
+                    <h4 class="fw-800 mb-4">Mon Portefeuille</h4>
+                    <div class="row g-4">
+                        <div class="col-md-6">
+                            <div class="bg-gradient-pro text-white p-4 rounded-4 shadow-lg h-100">
+                                <small class="opacity-75">Solde Actuel (Terminé)</small>
+                                <h2 class="fw-800 mb-0">@((Model.Bookings?.Where(b => b.Status == "Completed").Sum(b => b.TotalPrice) ?? 0).ToString("N0")) Ar</h2>
+                                <button class="btn btn-light btn-sm rounded-pill mt-3 px-3 fw-bold">Retirer fonds</button>
+                            </div>
+                        </div>
+                        <div class="col-md-6">
+                            <div class="border p-4 rounded-4 h-100 bg-light">
+                                <small class="text-muted">Missions en cours</small>
+                                <h3 class="fw-bold text-primary mb-0">@((Model.Bookings?.Where(b => b.Status != "Completed").Sum(b => b.TotalPrice) ?? 0).ToString("N0")) Ar</h3>
+                                <small class="text-muted">@(Model.Bookings?.Count(b => b.Status != "Completed") ?? 0) dossiers actifs</small>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                @* 5. SECTION : PORTFOLIO *@
+                <div class="tab-pane fade" id="portfolio">
+                    <h4 class="fw-800 mb-4">Ma Galerie Portfolio</h4>
+                    <form asp-controller="Provider" asp-action="UploadPortfolio" method="post" enctype="multipart/form-data" class="mb-5 p-4 bg-light rounded-4 border">
+                        <div class="row g-3">
+                            <div class="col-md-5">
+                                <label class="label-pro">NOUVELLE IMAGE</label>
+                                <input type="file" name="portfolioFile" class="form-control" required>
+                            </div>
+                            <div class="col-md-5">
+                                <label class="label-pro">LÉGENDE</label>
+                                <input type="text" name="description" class="form-control" placeholder="Titre du projet">
+                            </div>
+                            <div class="col-md-2 d-flex align-items-end">
+                                <button type="submit" class="btn btn-dark w-100 rounded-pill py-2">Ajouter</button>
+                            </div>
+                        </div>
+                    </form>
+                    <div class="row g-3">
+                        @if (Model.PortfolioItems?.Any() == true) {
+                            @foreach (var item in Model.PortfolioItems) {
+                                <div class="col-md-4">
+                                    <div class="portfolio-card shadow-sm border bg-white rounded-3 overflow-hidden position-relative">
+                                        <img src="@item.ImageUrl" class="w-100" style="height:180px; object-fit:cover;">
+                                        <div class="p-2 d-flex justify-content-between align-items-center">
+                                            <span class="small fw-bold text-truncate me-2">@item.Description</span>
+                                            <form asp-action="DeletePortfolioItem" method="post">
+                                                <input type="hidden" name="id" value="@item.Id" />
+                                                <button type="submit" class="btn btn-link text-danger p-0"><i class="bi bi-trash"></i></button>
+                                            </form>
+                                        </div>
+                                    </div>
+                                </div>
+                            }
+                        }
+                    </div>
+                </div>
+
+                @* 6. SECTION : AVIS CLIENTS *@
+                <div class="tab-pane fade" id="reputation">
+                    <h4 class="fw-800 mb-4">Avis Clients (@(Model.Reviews?.Count ?? 0))</h4>
+                    @if (Model.Reviews?.Any() == true) {
+                        @foreach(var review in Model.Reviews.OrderByDescending(r => r.DatePosted)) {
+                            <div class="card border-0 bg-light rounded-4 p-4 mb-3">
+                                <div class="d-flex justify-content-between mb-2">
+                                    <div>
+                                        <span class="fw-bold">@review.CustomerName</span>
+                                        <small class="text-muted ms-2">@review.DatePosted.ToShortDateString()</small>
+                                    </div>
+                                    <span class="text-warning">
+                                        @for(int i=0; i<5; i++) { <i class="bi @(i < review.Rating ? "bi-star-fill" : "bi-star")"></i> }
+                                    </span>
+                                </div>
+                                <p class="mb-0 text-muted">"@review.Comment"</p>
+                            </div>
+                        }
+                    } else {
+                        <div class="text-center py-5">
+                            <i class="bi bi-chat-left-quote display-1 text-light"></i>
+                            <p class="text-muted mt-3">Vous n'avez pas encore reçu d'avis.</p>
+                        </div>
+                    }
+                </div>
+
+                @* 7. SECTION : VÉRIFICATION *@
+                <div class="tab-pane fade" id="verification">
+                    <h4 class="fw-800 mb-4">Vérification d'Identité</h4>
+                    @if(Model.IsVerified) {
+                        <div class="alert alert-success rounded-4 d-flex align-items-center p-4">
+                            <i class="bi bi-check-circle-fill fs-1 me-4"></i>
+                            <div>
+                                <h5 class="fw-bold mb-0">Profil Certifié</h5>
+                                <p class="mb-0 small">Vous avez accès à toutes les fonctionnalités et une meilleure visibilité.</p>
+                            </div>
+                        </div>
+                    } else {
+                        <div class="card border-dashed p-5 text-center bg-light rounded-4">
+                            <i class="bi bi-shield-lock display-4 text-muted mb-3"></i>
+                            <h5>Obtenir le badge de confiance</h5>
+                            <p class="text-muted small">Envoyez vos pièces justificatives (CIN ou Passeport) pour certifier votre profil.</p>
+                            <button class="btn btn-primary-mada rounded-pill px-4 mx-auto">Téléverser mes documents</button>
+                        </div>
+                    }
+                </div>
+
+            </div>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    <script>
+        // Mise à jour AJAX des disponibilités
+        document.querySelectorAll('.availability-toggle').forEach(toggle => {
+            toggle.addEventListener('change', function() {
+                const day = this.getAttribute('data-day');
+                const isActive = this.checked;
+                fetch('/Provider/UpdateAvailability', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+                    body: `day=${day}&isActive=${isActive}`
+                }).then(res => { if(!res.ok) alert("Erreur réseau"); });
+            });
+        });
+    </script>
+}
+
+<style>
+    :root { 
+        --mada-primary: #059669; 
+        --mada-dark: #064e3b; 
+        --mada-bg: #f8fafc;
+        --mada-primary-soft: #ecfdf5;
+    }
+    
+    body { background-color: var(--mada-bg); font-family: 'Outfit', sans-serif; color: #1e293b; }
+    .fw-800 { font-weight: 800; }
+    .fw-600 { font-weight: 600; }
+    .bg-gradient-pro { background: linear-gradient(135deg, var(--mada-primary) 0%, var(--mada-dark) 100%); }
+    
+    .avatar-wrapper { width: 100px; height: 100px; background: #eee; }
+    .avatar-overlay {
+        position: absolute; top: 0; left: 0; width: 100%; height: 100%;
+        background: rgba(0,0,0,0.4); display: flex; align-items: center;
+        justify-content: center; opacity: 0; transition: 0.3s;
+    }
+    .avatar-container:hover .avatar-overlay { opacity: 1; }
+    
+    .sidebar-nav .nav-link { 
+        color: #475569; border-radius: 12px; font-weight: 600; text-align: left;
+        margin-bottom: 5px; padding: 12px 18px;
+    }
+    .sidebar-nav .nav-link:hover { background: var(--mada-primary-soft); color: var(--mada-primary); }
+    .sidebar-nav .nav-link.active { 
+        background-color: var(--mada-primary) !important; color: white !important; 
+        box-shadow: 0 4px 12px rgba(5,150,105,0.25);
+    }
+    
+    .label-pro { font-weight: 700; font-size: 0.75rem; color: #64748b; margin-bottom: 0.4rem; display: block; text-transform: uppercase; }
+    .input-pro { border-radius: 12px; border: 1.5px solid #e2e8f0; padding: 0.75rem; }
+    .input-pro:focus { border-color: var(--mada-primary); box-shadow: 0 0 0 3px rgba(5,150,105,0.1); outline: none; }
+    
+    .btn-primary-mada { background-color: var(--mada-primary); color: white; font-weight: 600; border: none; }
+    .btn-primary-mada:hover { background-color: var(--mada-dark); transform: translateY(-2px); color: white; }
+    
+    .bg-warning-soft { background-color: #fffbeb; color: #d97706; }
+    .bg-success-soft { background-color: #f0fdf4; color: #16a34a; }
+    .bg-primary-soft { background-color: #eff6ff; color: #2563eb; }
+    
+    .border-dashed { border: 2px dashed #cbd5e1 !important; }
+    .cursor-pointer { cursor: pointer; }
+    .portfolio-card:hover { transform: translateY(-5px); transition: 0.3s; }
+    
+    .animate-pulse { animation: pulse 2s infinite; }
+    @@keyframes pulse { 0% { opacity: 1; } 50% { opacity: 0.6; } 100% { opacity: 1; } }
+</style>

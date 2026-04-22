@@ -1,0 +1,317 @@
+@model MadaServices.Models.Provider
+@{
+    ViewData["Title"] = Model?.FullName ?? "Détails de l'expert";
+    // On utilise soit ViewBag soit l'authentification directe
+    bool canSeeContact = ViewBag.ShowContact ?? (User.Identity?.IsAuthenticated ?? false);
+    
+    double averageRating = (Model?.Reviews != null && Model.Reviews.Any()) 
+        ? Model.Reviews.Average(r => r.Rating) 
+        : 0;
+}
+
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:wght@700&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+
+<style>
+    :root {
+        --earth-dark: #3e362e;
+        --earth-clay: #a67c52;
+        --earth-sand: #fdfaf5;
+        --earth-leaf: #556b2f;
+        --white: #ffffff;
+    }
+
+    body { 
+        background-color: var(--earth-sand); 
+        font-family: 'Inter', sans-serif;
+        color: var(--earth-dark);
+    }
+
+    h2, h4, .section-title { font-family: 'Fraunces', serif; }
+
+    .profile-master-card {
+        background: var(--white);
+        border-radius: 40px;
+        border: 1px solid rgba(166, 124, 82, 0.1);
+        box-shadow: 0 30px 60px rgba(62, 54, 46, 0.05);
+        overflow: hidden;
+    }
+
+    .profile-aside {
+        background: #fcfbf7;
+        padding: 60px 40px;
+        text-align: center;
+        border-right: 1px solid #f4eee0;
+    }
+
+    .avatar-wrapper-detail {
+        position: relative;
+        width: 180px;
+        height: 180px;
+        margin: 0 auto 25px;
+    }
+
+    .avatar-detail-img {
+        width: 100%;
+        height: 100%;
+        object-fit: cover;
+        border-radius: 50px;
+        border: 6px solid white;
+        box-shadow: 0 15px 30px rgba(166, 124, 82, 0.15);
+    }
+
+    .status-indicator {
+        position: absolute;
+        bottom: 10px;
+        right: 10px;
+        width: 25px;
+        height: 25px;
+        border: 4px solid white;
+        border-radius: 50%;
+    }
+    .status-online { background: #22c55e; }
+    .status-offline { background: #ef4444; }
+
+    .job-tag-detail {
+        background: #f4f1ea;
+        color: var(--earth-clay);
+        font-weight: 700;
+        font-size: 0.8rem;
+        padding: 8px 20px;
+        border-radius: 20px;
+        display: inline-block;
+        margin-bottom: 20px;
+    }
+
+    .profile-main-content { padding: 60px; }
+
+    .section-title {
+        color: var(--earth-dark);
+        margin-bottom: 25px;
+        display: flex;
+        align-items: center;
+        gap: 15px;
+    }
+
+    .section-title::after {
+        content: "";
+        height: 2px;
+        background: #eeeae0;
+        flex-grow: 1;
+    }
+
+    .pricing-banner {
+        background: var(--earth-dark);
+        color: white;
+        border-radius: 30px;
+        padding: 35px;
+        margin: 40px 0;
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        flex-wrap: wrap;
+        gap: 20px;
+    }
+
+    .price-big { font-size: 2.2rem; font-weight: 700; font-family: 'Fraunces', serif; }
+
+    .btn-contact-warm {
+        background: var(--earth-clay);
+        color: white;
+        padding: 14px 30px;
+        border-radius: 20px;
+        text-decoration: none;
+        font-weight: 700;
+        transition: 0.3s;
+        display: inline-flex;
+        align-items: center;
+        gap: 10px;
+    }
+
+    .btn-contact-warm:hover {
+        background: var(--white);
+        color: var(--earth-dark);
+        transform: translateY(-3px);
+    }
+
+    /* Styles Portfolio */
+    .portfolio-item {
+        border-radius: 20px;
+        overflow: hidden;
+        height: 180px;
+        border: 1px solid #f4eee0;
+    }
+    .portfolio-img { width: 100%; height: 100%; object-fit: cover; transition: 0.5s; }
+    .portfolio-item:hover .portfolio-img { transform: scale(1.1); }
+
+    /* Styles Disponibilités */
+    .day-badge {
+        padding: 10px;
+        background: #fcfbf7;
+        border: 1px solid #eeeae0;
+        border-radius: 15px;
+        text-align: center;
+        min-width: 65px;
+    }
+    .day-badge.active { background: #556b2f; color: white; border-color: #556b2f; }
+
+    .review-bubble {
+        background: #fcfbf7;
+        border-radius: 25px;
+        padding: 30px;
+        border: 1px solid #f4eee0;
+        height: 100%;
+    }
+
+    @@media (max-width: 991px) {
+        .profile-aside { border-right: none; border-bottom: 1px solid #f4eee0; padding: 40px 20px; }
+        .profile-main-content { padding: 40px 25px; }
+        .pricing-banner { text-align: center; justify-content: center; }
+    }
+</style>
+
+<div class="container py-5">
+    @if (Model == null)
+    {
+        <div class="text-center py-5">
+            <h2 class="display-5">Expert non trouvé</h2>
+            <a asp-action="Index" class="btn btn-outline-dark rounded-pill mt-4">Retour à l'accueil</a>
+        </div>
+    }
+    else
+    {
+        <div class="profile-master-card">
+            <div class="row g-0">
+                <div class="col-lg-4 profile-aside">
+                    <div class="avatar-wrapper-detail">
+                        <img src="@(string.IsNullOrEmpty(Model.ProfileImageUrl) ? "/images/default-avatar.png" : Model.ProfileImageUrl)" 
+                             class="avatar-detail-img" 
+                             alt="@Model.FullName">
+                        
+                        <div class="status-indicator @(Model.IsPaused ? "status-offline" : "status-online")"></div>
+                    </div>
+
+                    <div class="job-tag-detail">@(Model.JobTitle ?? "Prestataire")</div>
+                    <h2 class="mb-2">@Model.FullName</h2>
+                    <p class="text-muted mb-4"><i class="bi bi-geo-alt me-2 text-clay"></i>@(Model.City ?? "Madagascar")</p>
+
+                    <div class="d-flex justify-content-center align-items-center gap-2 mb-1">
+                        <div class="text-warning">
+                            @for(int i=1; i<=5; i++) {
+                                <i class="bi bi-star-fill @(i <= Math.Round(averageRating) ? "" : "opacity-25")"></i>
+                            }
+                        </div>
+                        <span class="fw-bold">@averageRating.ToString("F1")</span>
+                    </div>
+                    <small class="text-muted">(@(Model.Reviews?.Count ?? 0) avis)</small>
+
+                    <div class="mt-5 text-start">
+                        <h6 class="fw-bold mb-3 small text-uppercase opacity-50">Disponibilités</h6>
+                        <div class="d-flex flex-wrap gap-2">
+                            @{
+                                var weekDays = new[] { "Lun", "Mar", "Mer", "Jeu", "Ven", "Sam", "Dim" };
+                                foreach (var day in weekDays) {
+                                    var isOk = Model.Availabilities?.Any(a => a.DayOfWeek == day && a.IsActive) ?? false;
+                                    <div class="day-badge @(isOk ? "active" : "")">
+                                        <div style="font-size: 0.75rem; font-weight: 700;">@day</div>
+                                    </div>
+                                }
+                            }
+                        </div>
+                    </div>
+                </div>
+
+                <div class="col-lg-8 profile-main-content">
+                    <h4 class="section-title">À propos de l'expert</h4>
+                    <p class="lh-lg text-secondary" style="font-size: 1.1rem; white-space: pre-line;">
+                        @(Model.Description ?? "Aucune description disponible pour ce profil.")
+                    </p>
+
+                    <div class="pricing-banner shadow-lg">
+                        <div>
+                            <span class="d-block opacity-75 small text-uppercase fw-bold mb-1">Honoraires indicatifs</span>
+                            <div class="price-big">
+                                @(Model.HourlyRate > 0 ? Model.HourlyRate.ToString("N0") : "---") 
+                                <span style="font-size: 1rem;">Ar/heure</span>
+                            </div>
+                        </div>
+                        
+                        <div class="d-flex gap-3 flex-wrap">
+                            @if (canSeeContact) 
+                            {
+                                @if(!string.IsNullOrEmpty(Model.PhoneNumber)) {
+                                    <a href="https://wa.me/@(Model.PhoneNumber.Replace(" ", ""))" class="btn-contact-warm">
+                                        <i class="bi bi-whatsapp"></i> WhatsApp
+                                    </a>
+                                    <a href="tel:@Model.PhoneNumber" class="btn btn-light rounded-pill fw-bold px-4 py-3 shadow-sm">
+                                        <i class="bi bi-telephone me-2"></i> Appeler
+                                    </a>
+                                }
+                            }
+                            else 
+                            {
+                                <div class="bg-white bg-opacity-10 p-3 rounded-4 border border-white border-opacity-25 text-center">
+                                    <small class="d-block mb-1 text-white"><i class="bi bi-lock-fill me-2"></i>Coordonnées privées</small>
+                                    <a asp-controller="Account" asp-action="Login" asp-route-returnUrl="@Context.Request.Path" class="text-white fw-bold small">Se connecter pour voir</a>
+                                </div>
+                            }
+                        </div>
+                    </div>
+
+                    @if (Model.PortfolioItems != null && Model.PortfolioItems.Any())
+                    {
+                        <div class="mt-5">
+                            <h4 class="section-title">Réalisations</h4>
+                            <div class="row g-3">
+                                @foreach (var item in Model.PortfolioItems)
+                                {
+                                    <div class="col-md-4 col-6">
+                                        <div class="portfolio-item shadow-sm">
+                                            <img src="@item.ImageUrl" class="portfolio-img" alt="Travail">
+                                        </div>
+                                    </div>
+                                }
+                            </div>
+                        </div>
+                    }
+
+                    <div class="mt-5">
+                        <div class="d-flex justify-content-between align-items-center mb-4">
+                            <h4 class="m-0">Expériences & Avis</h4>
+                            @if (User.Identity?.IsAuthenticated == true) {
+                                <a asp-controller="Provider" asp-action="AddReview" asp-route-id="@Model.Id" class="btn btn-outline-dark rounded-pill fw-bold btn-sm px-4">Laisser un avis</a>
+                            }
+                        </div>
+
+                        <div class="row g-4">
+                            @if (Model.Reviews != null && Model.Reviews.Any())
+                            {
+                                foreach (var review in Model.Reviews.OrderByDescending(r => r.DatePosted).Take(4)) 
+                                {
+                                    <div class="col-md-6">
+                                        <div class="review-bubble shadow-sm">
+                                            <div class="d-flex justify-content-between mb-3">
+                                                <div class="fw-bold text-dark">@review.CustomerName</div>
+                                                <div class="text-warning small">
+                                                    @for(int i=0; i < review.Rating; i++){ <i class="bi bi-star-fill"></i> }
+                                                </div>
+                                            </div>
+                                            <p class="small text-muted mb-0 fst-italic">"@review.Comment"</p>
+                                        </div>
+                                    </div>
+                                }
+                            }
+                            else
+                            {
+                                <div class="col-12">
+                                    <div class="p-5 text-center bg-light rounded-4 border-dashed border-2">
+                                        <p class="text-muted mb-0">Cet expert n'a pas encore reçu d'avis.</p>
+                                    </div>
+                                </div>
+                            }
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    }
+</div>

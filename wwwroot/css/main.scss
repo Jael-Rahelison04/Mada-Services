@@ -1,0 +1,106 @@
+// Palette "Vibrant Madagascar" - Optimisée pour le Web Moderne
+$color-emerald: #00b894;  // Vert frais (Maison / Bien-être)
+$color-coral:   #ff7675;  // Corail (Travaux / Réparation)
+$color-indigo:  #6c5ce7;  // Indigo (Tech / Pro)
+$color-amber:   #fdcb6e;  // Ambre (Événements)
+$color-ocean:   #0984e3;  // Bleu (Transport / Auto)
+$color-dark:    #1e293b;  // Slate sombre pour le texte
+$bg-soft:       #f8f9fd;
+
+// Mixin pour des ombres portées élégantes et diffuses
+@mixin premium-shadow($color) {
+    box-shadow: 0 20px 40px rgba($color, 0.12), 0 8px 16px rgba($color, 0.06);
+}
+
+// Hero Section : Le "Wow" effect
+.hero-vibrant {
+    // Utilisation d'un dégradé plus doux et profond
+    background: linear-gradient(135deg, #4834d4 0%, #6c5ce7 50%, #00b894 100%);
+    padding: 120px 0;
+    color: white;
+    // Forme arrondie organique en bas
+    clip-path: ellipse(160% 100% at 50% 0%);
+    position: relative;
+    
+    h1 { 
+        font-family: 'Plus Jakarta Sans', sans-serif;
+        font-weight: 850; 
+        letter-spacing: -2px;
+        line-height: 1.1;
+    }
+    
+    p {
+        font-size: 1.2rem;
+        opacity: 0.9;
+        font-weight: 500;
+    }
+}
+
+// Grille de Catégories
+.category-card {
+    border: 1px solid rgba(0,0,0,0.03);
+    border-radius: 24px;
+    padding: 40px 30px;
+    text-align: center;
+    background: white;
+    transition: all 0.4s cubic-bezier(0.165, 0.84, 0.44, 1);
+    cursor: pointer;
+    text-decoration: none;
+    display: block;
+
+    h5 {
+        color: $color-dark;
+        font-weight: 700;
+        margin-top: 15px;
+        transition: color 0.3s;
+    }
+
+    .icon-box {
+        width: 85px;
+        height: 85px;
+        border-radius: 22px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        margin: 0 auto;
+        font-size: 2.2rem;
+        transition: all 0.5s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+    }
+
+    // Assignation des couleurs avec boucles ou classes manuelles
+    &.cat-it { 
+        .icon-box { background: rgba($color-indigo, 0.08); color: $color-indigo; }
+        &:hover .icon-box { background: $color-indigo; color: white; box-shadow: 0 15px 30px rgba($color-indigo, 0.3); }
+    }
+    
+    &.cat-home { 
+        .icon-box { background: rgba($color-emerald, 0.08); color: $color-emerald; }
+        &:hover .icon-box { background: $color-emerald; color: white; box-shadow: 0 15px 30px rgba($color-emerald, 0.3); }
+    }
+    
+    &.cat-work { 
+        .icon-box { background: rgba($color-coral, 0.08); color: $color-coral; }
+        &:hover .icon-box { background: $color-coral; color: white; box-shadow: 0 15px 30px rgba($color-coral, 0.3); }
+    }
+    
+    &.cat-event { 
+        .icon-box { background: rgba($color-amber, 0.08); color: $color-amber; }
+        &:hover .icon-box { background: $color-amber; color: white; box-shadow: 0 15px 30px rgba($color-amber, 0.3); }
+    }
+
+    &.cat-auto { 
+        .icon-box { background: rgba($color-ocean, 0.08); color: $color-ocean; }
+        &:hover .icon-box { background: $color-ocean; color: white; box-shadow: 0 15px 30px rgba($color-ocean, 0.3); }
+    }
+
+    // Effet de survol global sur la carte
+    &:hover {
+        transform: translateY(-12px);
+        @include premium-shadow($color-dark);
+        border-color: transparent;
+        
+        .icon-box {
+            transform: scale(1.1) rotate(8deg);
+        }
+    }
+}

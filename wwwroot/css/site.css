@@ -1,0 +1,101 @@
+/* --- Fondations --- */
+html {
+  font-size: 14px;
+  scroll-behavior: smooth; /* Navigation fluide entre les sections */
+  height: 100%;
+}
+
+@media (min-width: 768px) {
+  html { font-size: 16px; }
+}
+
+body {
+  height: 100%;
+  margin-bottom: 0; 
+  display: flex;
+  flex-direction: column;
+  background-color: var(--brand-bg); /* Utilise la variable du layout */
+}
+
+/* --- Focus & Accessibilité (Focus Indigo) --- */
+/* Remplacement du violet par l'Indigo de MadaServices */
+.btn:focus, 
+.btn:active:focus, 
+.nav-link:focus, 
+.form-control:focus, 
+.form-check-input:focus {
+  outline: none !important;
+  /* Halo subtil de couleur Indigo */
+  box-shadow: 0 0 0 2px white, 0 0 0 4px rgba(67, 56, 202, 0.15) !important;
+  border-color: var(--brand-main) !important;
+}
+
+/* --- Harmonisation des Inputs --- */
+.form-control {
+  border-radius: 10px;
+  border: 1px solid #e2e8f0;
+  padding: 0.6rem 1rem;
+  transition: all 0.2s ease-in-out;
+}
+
+.form-floating > .form-control::placeholder {
+  color: #94a3b8;
+  opacity: 0.7;
+}
+
+/* --- Utilitaires de Design --- */
+
+/* Badge de statut professionnel (Émeraude pour le succès/dispo) */
+.badge-status {
+  padding: 0.5em 1.2em;
+  border-radius: 50px; /* Style pilule plus moderne */
+  font-weight: 600;
+  font-size: 0.8rem;
+  letter-spacing: 0.3px;
+  text-transform: uppercase;
+}
+
+.badge-available {
+  background-color: rgba(16, 185, 129, 0.1);
+  color: var(--brand-accent);
+  border: 1px solid rgba(16, 185, 129, 0.2);
+}
+
+/* Ombres douces pour les cartes de prestataires */
+.shadow-soft {
+  box-shadow: 0 10px 30px -5px rgba(30, 27, 75, 0.05) !important;
+  border: 1px solid rgba(0,0,0,0.03);
+}
+
+/* Barre de défilement (scrollbar) personnalisée */
+::-webkit-scrollbar {
+  width: 8px;
+}
+
+::-webkit-scrollbar-track {
+  background: #f1f5f9;
+}
+
+::-webkit-scrollbar-thumb {
+  background: #cbd5e1; /* Gris neutre par défaut */
+  border-radius: 10px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: var(--brand-main); /* Devient Indigo au survol */
+}
+
+/* --- Fix pour le Sticky Footer --- */
+/* Garantit que le contenu pousse le footer vers le bas */
+main {
+  flex: 1 0 auto;
+  display: block; /* Sécurité pour certains navigateurs */
+}
+
+/* Optionnel : Style pour les titres MadaServices */
+.fw-800 { font-weight: 800; }
+.text-gradient {
+  background: var(--primary-gradient);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+}

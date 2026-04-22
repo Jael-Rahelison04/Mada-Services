@@ -1,0 +1,94 @@
+/* /Views/Shared/_Layout.cshtml.rz.scp.css */
+/* --- Variables Globales (Synchronisées avec le Layout) --- */
+:root[b-xmwali859s] {
+  --brand-dark: #1e1b4b;
+  --brand-main: #4338ca;
+  --brand-accent: #10b981;
+  --brand-bg: #f8fafc;
+}
+
+/* --- Typographie et Base --- */
+body[b-xmwali859s] {
+  background-color: var(--brand-bg);
+  color: #1e293b;
+  margin-bottom: 0; /* On retire la marge forcée du footer classique */
+}
+
+a[b-xmwali859s] {
+  color: var(--brand-main);
+  text-decoration: none;
+  transition: 0.2s;
+}
+
+a:hover[b-xmwali859s] {
+  color: var(--brand-dark);
+  text-decoration: underline;
+}
+
+/* --- Configuration Navbar --- */
+.navbar-brand[b-xmwali859s] {
+  white-space: nowrap; /* Changé de 'normal' pour éviter que le logo casse sur 2 lignes */
+  font-weight: 800;
+}
+
+/* --- Boutons et Actions --- */
+.btn-primary[b-xmwali859s] {
+  color: #fff;
+  background-color: var(--brand-main);
+  border-color: var(--brand-main);
+  border-radius: 8px;
+  padding: 0.5rem 1.25rem;
+  font-weight: 600;
+  transition: all 0.2s;
+}
+
+.btn-primary:hover[b-xmwali859s] {
+  background-color: var(--brand-dark);
+  border-color: var(--brand-dark);
+  transform: translateY(-1px);
+  box-shadow: 0 4px 12px rgba(67, 56, 202, 0.2);
+}
+
+/* --- Nav Pills (Actifs) --- */
+.nav-pills .nav-link.active[b-xmwali859s], 
+.nav-pills .show > .nav-link[b-xmwali859s] {
+  color: #fff;
+  background-color: var(--brand-main);
+  box-shadow: 0 4px 10px rgba(67, 56, 202, 0.15);
+}
+
+/* --- Bordures et Ombres --- */
+.border-top[b-xmwali859s] {
+  border-top: 1px solid rgba(0,0,0,0.05) !important;
+}
+
+.border-bottom[b-xmwali859s] {
+  border-bottom: 1px solid rgba(0,0,0,0.05) !important;
+}
+
+.box-shadow[b-xmwali859s] {
+  box-shadow: 0 10px 30px rgba(30, 27, 75, 0.05);
+}
+
+/* --- Footer (Correction du positionnement) --- */
+/* On supprime le position: absolute qui fait souvent chevaucher le footer sur le contenu */
+.footer[b-xmwali859s] {
+  width: 100%;
+  white-space: nowrap;
+  line-height: 60px;
+  background: var(--brand-dark);
+  color: rgba(255,255,255,0.6);
+}
+
+/* --- Utilitaires de Cartes (Cards) --- */
+.card-modern[b-xmwali859s] {
+  border: none;
+  border-radius: 15px;
+  transition: 0.3s;
+  background: white;
+}
+
+.card-modern:hover[b-xmwali859s] {
+  transform: translateY(-5px);
+  box-shadow: 0 20px 40px rgba(0,0,0,0.08);
+}

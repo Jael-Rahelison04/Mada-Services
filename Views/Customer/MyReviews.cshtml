@@ -1,0 +1,255 @@
+@model IEnumerable<MadaServices.Models.Review>
+@{
+    ViewData["Title"] = "Mes Avis Publiés";
+}
+
+<link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.1/font/bootstrap-icons.css">
+
+<style>
+    :root {
+        --primary: #4f46e5;
+        --primary-dark: #3730a3;
+        --primary-soft: #eef2ff;
+        --secondary: #6366f1;
+        --dark: #0f172a;
+        --text-muted: #64748b;
+        --bg-main: #f8fafc;
+        --star-color: #f59e0b;
+        --card-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.05), 0 4px 6px -2px rgba(0, 0, 0, 0.02);
+    }
+
+    body { 
+        background-color: var(--bg-main); 
+        font-family: 'Outfit', sans-serif; 
+        color: var(--dark);
+        -webkit-font-smoothing: antialiased;
+    }
+
+    /* --- Header & Stats --- */
+    .header-container {
+        background: white;
+        border-radius: 30px;
+        padding: 2.5rem;
+        border: 1px solid rgba(226, 232, 240, 0.8);
+        box-shadow: var(--card-shadow);
+        margin-bottom: 3rem;
+    }
+
+    .count-stat-card {
+        background: linear-gradient(135deg, var(--primary), var(--secondary));
+        color: white;
+        padding: 1.5rem 2.5rem;
+        border-radius: 20px;
+        box-shadow: 0 10px 20px rgba(79, 70, 229, 0.2);
+    }
+
+    /* --- Review Card Custom --- */
+    .review-card {
+        background: white;
+        border: 1px solid #e2e8f0;
+        border-radius: 28px;
+        transition: all 0.4s cubic-bezier(0.23, 1, 0.32, 1);
+        position: relative;
+        border: 1px solid rgba(226, 232, 240, 0.8);
+    }
+
+    .review-card:hover {
+        transform: translateY(-8px);
+        box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.08);
+        border-color: var(--primary);
+    }
+
+    /* --- Rating Visualization --- */
+    .rating-pill {
+        background: var(--primary-soft);
+        color: var(--primary);
+        padding: 6px 16px;
+        border-radius: 100px;
+        font-weight: 700;
+        font-size: 0.9rem;
+        display: inline-flex;
+        align-items: center;
+        gap: 6px;
+    }
+
+    .stars-display {
+        color: var(--star-color);
+        letter-spacing: 2px;
+    }
+
+    /* --- Avatar & Details --- */
+    .provider-info-box {
+        background: #fcfdfe;
+        border-radius: 20px;
+        padding: 1rem;
+        border: 1px solid #f1f5f9;
+    }
+
+    .avatar-circle {
+        width: 48px;
+        height: 48px;
+        background: linear-gradient(135deg, #e2e8f0 0%, #cbd5e1 100%);
+        color: var(--dark);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-weight: 700;
+        border-radius: 15px;
+        font-size: 1.2rem;
+    }
+
+    /* --- Content --- */
+    .review-comment {
+        font-size: 1.15rem;
+        line-height: 1.7;
+        color: #334155;
+        font-weight: 400;
+        font-style: italic;
+    }
+
+    /* --- Buttons --- */
+    .btn-action-delete {
+        background: #fff1f2;
+        color: #e11d48;
+        border: 1px solid #ffe4e6;
+        padding: 0.6rem 1.2rem;
+        border-radius: 14px;
+        font-weight: 600;
+        transition: 0.3s;
+    }
+
+    .btn-action-delete:hover {
+        background: #e11d48;
+        color: white;
+        box-shadow: 0 5px 15px rgba(225, 29, 72, 0.2);
+    }
+
+    .breadcrumb-item a {
+        color: var(--text-muted);
+        text-decoration: none;
+        font-weight: 500;
+    }
+    
+    .breadcrumb-item.active { color: var(--primary); }
+</style>
+
+<div class="container py-5">
+    <nav aria-label="breadcrumb" class="mb-4">
+        <ol class="breadcrumb">
+            <li class="breadcrumb-item"><a asp-action="Index"><i class="bi bi-grid-1x2 me-2"></i>Dashboard</a></li>
+            <li class="breadcrumb-item active fw-bold">Mes Avis</li>
+        </ol>
+    </nav>
+
+    <div class="header-container d-flex flex-column flex-md-row align-items-md-center justify-content-between gap-4">
+        <div>
+            <h1 class="fw-800 display-6 mb-2">Mon Journal d'Avis</h1>
+            <p class="text-muted fs-5 mb-0">Gérez vos retours d'expérience et aidez la communauté.</p>
+        </div>
+        <div class="count-stat-card text-center">
+            <div class="h1 fw-800 mb-0">@Model.Count()</div>
+            <div class="small text-uppercase fw-600 opacity-75">Contributions</div>
+        </div>
+    </div>
+
+    <div class="row g-4">
+        @if (!Model.Any())
+        {
+            <div class="col-12 text-center py-5">
+                <div class="bg-white p-5 rounded-5 shadow-sm border-2 border-dashed">
+                    <img src="https://cdn-icons-png.flaticon.com/512/4076/4076549.png" width="120" class="mb-4 opacity-50" alt="Empty">
+                    <h3 class="fw-bold">Aucun avis pour le moment</h3>
+                    <p class="text-muted mx-auto" style="max-width: 400px;">Vos futurs avis apparaîtront ici dès que vous aurez partagé votre première expérience.</p>
+                    <a asp-action="Index" class="btn btn-primary btn-lg rounded-pill px-5 mt-3 shadow-lg">Explorer les prestataires</a>
+                </div>
+            </div>
+        }
+        else
+        {
+            @foreach (var review in Model)
+            {
+                <div class="col-12 animate-fade-in">
+                    <div class="card review-card shadow-sm border-0">
+                        <div class="card-body p-4 p-lg-5">
+                            <div class="row g-4 align-items-start">
+                                
+                                <div class="col-lg-3 col-md-4">
+                                    <div class="rating-pill mb-3">
+                                        <i class="bi bi-star-fill"></i>
+                                        <span>Note : @review.Rating / 5</span>
+                                    </div>
+                                    
+                                    <div class="stars-display mb-4">
+                                        @for (int i = 1; i <= 5; i++)
+                                        {
+                                            <i class="bi @(i <= review.Rating ? "bi-star-fill" : "bi-star text-light")"></i>
+                                        }
+                                    </div>
+
+                                    <div class="provider-info-box d-flex align-items-center gap-3">
+                                        <div class="avatar-circle">
+                                            @(review.Provider?.FullName?.Substring(0, 1).ToUpper() ?? "?")
+                                        </div>
+                                        <div class="overflow-hidden">
+                                            <h6 class="fw-700 mb-0 text-truncate">@review.Provider?.FullName</h6>
+                                            <small class="text-muted">@review.Provider?.JobTitle</small>
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <div class="col-lg-7 col-md-5">
+                                    <div class="ps-md-4">
+                                        <i class="bi bi-quote display-4 text-primary opacity-10 d-block mb-n3"></i>
+                                        <p class="review-comment mb-4">@review.Comment</p>
+                                        <div class="d-flex align-items-center gap-2 text-muted small">
+                                            <i class="bi bi-clock-history"></i>
+                                            <span>Publié le <strong>@review.DatePosted.ToString("dd MMMM yyyy")</strong></span>
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <div class="col-lg-2 col-md-3 text-md-end">
+                                    <form asp-action="DeleteReview" method="post" onsubmit="return confirm('Voulez-vous vraiment supprimer cet avis ? Cette action est irréversible.');">
+                                        @Html.AntiForgeryToken()
+                                        <input type="hidden" name="id" value="@review.Id" />
+                                        <button type="submit" class="btn btn-action-delete w-100 w-md-auto">
+                                            <i class="bi bi-trash3-fill me-2"></i> Retirer
+                                        </button>
+                                    </form>
+                                </div>
+
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            }
+        }
+    </div>
+</div>
+
+<script>
+    document.addEventListener("DOMContentLoaded", function() {
+        const observerOptions = {
+            threshold: 0.1
+        };
+
+        const observer = new IntersectionObserver((entries) => {
+            entries.forEach((entry, index) => {
+                if (entry.isIntersecting) {
+                    setTimeout(() => {
+                        entry.target.style.opacity = "1";
+                        entry.target.style.transform = "translateY(0)";
+                    }, index * 100);
+                }
+            });
+        }, observerOptions);
+
+        document.querySelectorAll('.animate-fade-in').forEach(card => {
+            card.style.opacity = "0";
+            card.style.transform = "translateY(30px)";
+            card.style.transition = "all 0.6s cubic-bezier(0.23, 1, 0.32, 1)";
+            observer.observe(card);
+        });
+    });
+</script>

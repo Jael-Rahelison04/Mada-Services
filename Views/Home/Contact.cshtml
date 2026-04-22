@@ -1,0 +1,107 @@
+@{
+    ViewData["Title"] = "Contactez-nous";
+}
+
+<div class="container py-5 mt-5">
+    <div class="row g-5">
+        <div class="col-lg-5">
+            <div class="p-5 rounded-4 shadow-lg text-white h-100 d-flex flex-column justify-content-between" 
+                 style="background: var(--primary-gradient); position: relative; overflow: hidden;">
+                
+                <div style="position: absolute; top: -20px; right: -20px; width: 150px; height: 150px; background: rgba(255,255,255,0.1); border-radius: 50%;"></div>
+                
+                <div>
+                    <h2 class="fw-800 mb-4">Parlons de votre projet</h2>
+                    <p class="opacity-75 mb-5">
+                        Que vous soyez un expert souhaitant rejoindre l'aventure ou un client avec un besoin spécifique, notre équipe est là pour vous accompagner.
+                    </p>
+
+                    <div class="d-flex align-items-center mb-4">
+                        <div class="rounded-circle bg-white bg-opacity-20 p-3 me-3">
+                            <i class="bi bi-geo-alt fs-4"></i>
+                        </div>
+                        <div>
+                            <h6 class="mb-0 fw-bold">Notre Siège</h6>
+                            <small class="opacity-75">Antananarivo 101, Madagascar</small>
+                        </div>
+                    </div>
+
+                    <div class="d-flex align-items-center mb-4">
+                        <div class="rounded-circle bg-white bg-opacity-20 p-3 me-3">
+                            <i class="bi bi-envelope-at fs-4"></i>
+                        </div>
+                        <div>
+                            <h6 class="mb-0 fw-bold">Email</h6>
+                            <small class="opacity-75">contact@madaservices.mg</small>
+                        </div>
+                    </div>
+
+                    <div class="d-flex align-items-center mb-4">
+                        <div class="rounded-circle bg-white bg-opacity-20 p-3 me-3">
+                            <i class="bi bi-whatsapp fs-4"></i>
+                        </div>
+                        <div>
+                            <h6 class="mb-0 fw-bold">WhatsApp Support</h6>
+                            <small class="opacity-75">+261 34 00 000 00</small>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="mt-5 pt-4 border-top border-white border-opacity-10 text-center">
+                    <p class="small opacity-50 mb-0">Réponse garantie sous 24h ouvrées.</p>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-lg-7">
+            <div class="bg-white p-5 rounded-4 shadow-sm border border-light">
+                <h3 class="text-brand-dark fw-800 mb-4">Envoyez-nous un message</h3>
+                
+                <form action="#" method="post">
+                    <div class="row g-3">
+                        <div class="col-md-6">
+                            <label class="form-label small fw-bold text-muted">NOM COMPLET</label>
+                            <input type="text" class="form-control rounded-3 border-light-subtle py-2" placeholder="Ex: Jean Rakoto" required>
+                        </div>
+                        <div class="col-md-6">
+                            <label class="form-label small fw-bold text-muted">ADRESSE EMAIL</label>
+                            <input type="email" class="form-control rounded-3 border-light-subtle py-2" placeholder="jean@email.com" required>
+                        </div>
+                        <div class="col-12 mt-4">
+                            <label class="form-label small fw-bold text-muted">SUJET</label>
+                            <select class="form-select rounded-3 border-light-subtle py-2">
+                                <option selected disabled>Choisissez un sujet...</option>
+                                <option>Devenir Partenaire</option>
+                                <option>Problème Technique</option>
+                                <option>Demande de Devis Professionnel</option>
+                                <option>Autre</option>
+                            </select>
+                        </div>
+                        <div class="col-12 mt-4">
+                            <label class="form-label small fw-bold text-muted">MESSAGE</label>
+                            <textarea class="form-control rounded-4 border-light-subtle" rows="6" placeholder="Décrivez votre besoin en quelques mots..." required></textarea>
+                        </div>
+                        <div class="col-12 mt-4">
+                            <button type="submit" class="btn btn-vibrant w-100 py-3 shadow-lg">
+                                <i class="bi bi-send-fill me-2"></i> Envoyer le message
+                            </button>
+                        </div>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+
+<style>
+    /* Styles spécifiques pour la page contact */
+    .form-control:focus, .form-select:focus {
+        border-color: var(--brand-main);
+        box-shadow: 0 0 0 0.25rem rgba(67, 56, 202, 0.1);
+    }
+    
+    input::placeholder, textarea::placeholder {
+        font-size: 0.9rem;
+        opacity: 0.6;
+    }
+</style>

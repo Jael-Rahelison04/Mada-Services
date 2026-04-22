@@ -1,0 +1,187 @@
+@{
+    ViewData["Title"] = "Notre Histoire";
+}
+
+<section class="py-5 text-center" style="background: var(--primary-gradient); border-radius: 0 0 3rem 3rem;">
+    <div class="container py-5">
+        <h1 class="display-4 fw-800 text-white mb-3">L'excellence au service de Madagascar</h1>
+        <p class="lead text-white-50 mx-auto" style="max-width: 700px;">
+            Découvrez comment MadaServices transforme la manière dont les talents et les opportunités se rencontrent sur la Grande Île.
+        </p>
+    </div>
+</section>
+
+<div class="container py-5">
+    <div class="row align-items-center g-5 py-5">
+        <div class="col-lg-6">
+            <div class="rounded-4 overflow-hidden shadow-lg position-relative" style="height: 400px; background: #e2e8f0;">
+                <div class="d-flex align-items-center justify-content-center h-100">
+                    <i class="bi bi-rocket-takeoff text-brand-main" style="font-size: 8rem; opacity: 0.2;"></i>
+                </div>
+                <div class="position-absolute bottom-0 start-0 p-4 bg-white bg-opacity-75 backdrop-blur w-100">
+                    <h5 class="fw-bold mb-1">Fondé en 2026</h5>
+                    <p class="small mb-0">Antananarivo, Madagascar</p>
+                </div>
+            </div>
+        </div>
+        <div class="col-lg-6">
+            <h6 class="text-brand-accent fw-bold text-uppercase letter-spacing-1">Notre Mission</h6>
+            <h2 class="fw-800 text-brand-dark mb-4">Démocratiser l'accès aux services professionnels</h2>
+            <p class="text-muted mb-4">
+                MadaServices est née d'un constat simple : Madagascar regorge de talents exceptionnels, mais ils manquent souvent de visibilité. Notre plateforme offre aux experts locaux une vitrine technologique de haut niveau.
+            </p>
+            <p class="text-muted mb-4">
+                Que vous soyez un développeur, un artisan, ou un consultant, nous croyons que la technologie peut briser les barrières géographiques et sociales pour créer de la valeur durable.
+            </p>
+            <div class="row g-3">
+                <div class="col-sm-6">
+                    <div class="d-flex align-items-center">
+                        <i class="bi bi-patch-check-fill text-brand-accent me-2 fs-4"></i>
+                        <span class="fw-bold text-brand-dark">Profils vérifiés</span>
+                    </div>
+                </div>
+                <div class="col-sm-6">
+                    <div class="d-flex align-items-center">
+                        <i class="bi bi-star-fill text-warning me-2 fs-4"></i>
+                        <span class="fw-bold text-brand-dark">Qualité garantie</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="row g-4 py-5">
+        <div class="col-md-4 text-center">
+            <div class="p-4 rounded-4 bg-white shadow-sm border-0 h-100 transition-hover">
+                <div class="rounded-circle bg-light d-inline-flex p-3 mb-4 text-brand-main">
+                    <i class="bi bi-shield-lock fs-2"></i>
+                </div>
+                <h5 class="fw-bold">Confiance</h5>
+                <p class="small text-muted">Nous bâtissons un écosystème où chaque interaction est sécurisée et chaque avis est authentique.</p>
+            </div>
+        </div>
+        <div class="col-md-4 text-center">
+            <div class="p-4 rounded-4 bg-white shadow-sm border-0 h-100 transition-hover">
+                <div class="rounded-circle bg-light d-inline-flex p-3 mb-4 text-brand-accent">
+                    <i class="bi bi-lightning-charge fs-2"></i>
+                </div>
+                <h5 class="fw-bold">Innovation</h5>
+                <p class="small text-muted">Nous utilisons les dernières technologies web pour offrir une expérience utilisateur fluide et rapide.</p>
+            </div>
+        </div>
+        <div class="col-md-4 text-center">
+            <div class="p-4 rounded-4 bg-white shadow-sm border-0 h-100 transition-hover">
+                <div class="rounded-circle bg-light d-inline-flex p-3 mb-4 text-danger">
+                    <i class="bi bi-people fs-2"></i>
+                </div>
+                <h5 class="fw-bold">Impact Local</h5>
+                <p class="small text-muted">Notre priorité est de dynamiser l'économie malgache en mettant en avant le "Vita Malagasy".</p>
+            </div>
+        </div>
+    </div>
+</div>
+<section class="py-5 bg-light rounded-5 mb-5 mx-2">
+    <div class="container py-4">
+        <div class="text-center mb-5">
+            <h6 class="text-brand-main fw-bold text-uppercase small letter-spacing-1">Aide & Support</h6>
+            <h2 class="fw-800 text-brand-dark">Questions Fréquemment Posées</h2>
+        </div>
+
+        <div class="row justify-content-center">
+            <div class="col-lg-8">
+                <div class="accordion accordion-flush shadow-sm rounded-4 overflow-hidden border border-white" id="faqAccordion">
+                    
+                    <div class="accordion-item border-bottom">
+                        <h2 class="accordion-header">
+                            <button class="accordion-button fw-bold py-4 px-4 shadow-none" type="button" data-bs-toggle="collapse" data-bs-target="#faq1">
+                                <i class="bi bi-question-circle me-3 text-brand-accent"></i>
+                                Comment fonctionne MadaServices ?
+                            </button>
+                        </h2>
+                        <div id="faq1" class="accordion-collapse collapse show" data-bs-parent="#faqAccordion">
+                            <div class="accordion-body px-4 pb-4 text-muted small lh-lg">
+                                MadaServices est une plateforme de mise en relation. Les clients cherchent des experts par domaine (Redaction, Design, etc.). Une fois l'expert trouvé, vous pouvez consulter son portfolio, ses avis et le contacter directement.
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="accordion-item border-bottom">
+                        <h2 class="accordion-header">
+                            <button class="accordion-button collapsed fw-bold py-4 px-4 shadow-none" type="button" data-bs-toggle="collapse" data-bs-target="#faq2">
+                                <i class="bi bi-person-badge me-3 text-brand-accent"></i>
+                                Comment devenir un partenaire (expert) ?
+                            </button>
+                        </h2>
+                        <div id="faq2" class="accordion-collapse collapse" data-bs-parent="#faqAccordion">
+                            <div class="accordion-body px-4 pb-4 text-muted small lh-lg">
+                                Il suffit de cliquer sur le bouton <strong>"Devenir Partenaire"</strong> dans la barre de navigation. Après inscription, vous pourrez compléter votre profil professionnel, ajouter vos réalisations et commencer à recevoir des demandes.
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="accordion-item border-bottom">
+                        <h2 class="accordion-header">
+                            <button class="accordion-button collapsed fw-bold py-4 px-4 shadow-none" type="button" data-bs-toggle="collapse" data-bs-target="#faq3">
+                                <i class="bi bi-star me-3 text-brand-accent"></i>
+                                Les avis sont-ils vérifiés ?
+                            </button>
+                        </h2>
+                        <div id="faq3" class="accordion-collapse collapse" data-bs-parent="#faqAccordion">
+                            <div class="accordion-body px-4 pb-4 text-muted small lh-lg">
+                                Absolument. Seuls les utilisateurs connectés peuvent laisser un avis. Nous limitons également le nombre d'avis par utilisateur pour garantir l'authenticité et la qualité des retours sur nos experts.
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="accordion-item">
+                        <h2 class="accordion-header">
+                            <button class="accordion-button collapsed fw-bold py-4 px-4 shadow-none" type="button" data-bs-toggle="collapse" data-bs-target="#faq4">
+                                <i class="bi bi-wallet2 me-3 text-brand-accent"></i>
+                                Combien coûte l'inscription ?
+                            </button>
+                        </h2>
+                        <div id="faq4" class="accordion-collapse collapse" data-bs-parent="#faqAccordion">
+                            <div class="accordion-body px-4 pb-4 text-muted small lh-lg">
+                                L'inscription et la visibilité sur la plateforme sont actuellement gratuites pour tous les talents malgaches. Notre but est de promouvoir l'excellence locale sans barrières financières initiales.
+                            </div>
+                        </div>
+                    </div>
+
+                </div>
+
+                <div class="text-center mt-5">
+                    <p class="text-muted small">Vous ne trouvez pas votre réponse ?</p>
+                    <a asp-controller="Home" asp-action="Contact" class="btn btn-outline-primary rounded-pill px-4">
+                        Contactez notre support
+                    </a>
+                </div>
+            </div>
+        </div>
+    </div>
+</section>
+
+<style>
+    /* Custom FAQ styles pour matcher le design global */
+    .accordion-button:not(.collapsed) {
+        background-color: white;
+        color: var(--brand-main);
+    }
+    
+    .accordion-button:after {
+        background-image: url("data:image/svg+xml,%3csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 16' fill='%234338ca'%3e%3cpath fill-rule='evenodd' d='M1.646 4.646a.5.5 0 0 1 .708 0L8 10.293l5.646-5.647a.5.5 0 0 1 .708.708l-6 6a.5.5 0 0 1-.708 0l-6-6a.5.5 0 0 1 0-.708z'/%3e%3c/svg%3e");
+    }
+
+    .accordion-item {
+        border-color: rgba(0,0,0,0.05) !important;
+    }
+</style>
+<style>
+    .fw-800 { font-weight: 800; }
+    .letter-spacing-1 { letter-spacing: 1px; }
+    .transition-hover { transition: transform 0.3s ease, box-shadow 0.3s ease; }
+    .transition-hover:hover { 
+        transform: translateY(-10px); 
+        box-shadow: 0 15px 30px rgba(0,0,0,0.1) !important;
+    }
+    .backdrop-blur { backdrop-filter: blur(5px); -webkit-backdrop-filter: blur(5px); }
+</style>

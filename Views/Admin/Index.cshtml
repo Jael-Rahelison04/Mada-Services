@@ -1,0 +1,371 @@
+@model MadaServices.Models.AdminDashboardViewModel
+
+<style>
+    :root {
+        --glass: rgba(255, 255, 255, 0.75);
+        --glass-border: rgba(255, 255, 255, 0.5);
+        --accent-gradient: linear-gradient(135deg, #6366f1 0%, #4338ca 100%);
+        --danger-gradient: linear-gradient(135deg, #f87171 0%, #dc2626 100%);
+    }
+
+    body {
+        background: radial-gradient(circle at top right, #e2e8f0, #f1f5f9);
+        font-family: 'Plus Jakarta Sans', sans-serif;
+        color: #1e293b;
+    }
+
+    /* Animations */
+    .fade-in-up { animation: fadeInUp 0.6s ease-out both; }
+    @@keyframes fadeInUp {
+        from { opacity: 0; transform: translateY(20px); }
+        to { opacity: 1; transform: translateY(0); }
+    }
+
+    /* Cards & Glassmorphism */
+    .table-container, .stat-card {
+        background: var(--glass);
+        backdrop-filter: blur(12px);
+        -webkit-backdrop-filter: blur(12px);
+        border: 1px solid var(--glass-border);
+        box-shadow: 0 8px 32px 0 rgba(31, 38, 135, 0.07);
+    }
+
+    .stat-card {
+        border-radius: 24px;
+        padding: 20px;
+        transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+        display: flex;
+        flex-direction: column;
+        justify-content: center;
+    }
+
+    .stat-card:hover {
+        transform: translateY(-8px);
+        background: white;
+        box-shadow: 0 15px 30px rgba(0,0,0,0.1);
+    }
+
+    .table-container {
+        border-radius: 28px;
+        padding: 30px;
+        margin-bottom: 2rem;
+    }
+
+    /* Navigation */
+    .nav-pills .nav-link {
+        color: #64748b;
+        font-weight: 700;
+        border-radius: 14px;
+        padding: 12px 24px;
+        transition: 0.3s;
+        border: 1px solid transparent;
+    }
+
+    .nav-pills .nav-link.active {
+        background: var(--accent-gradient) !important;
+        box-shadow: 0 10px 20px -5px rgba(99, 102, 241, 0.4);
+        color: white !important;
+    }
+
+    /* Custom UI Elements */
+    .user-avatar {
+        width: 45px; height: 45px;
+        background: var(--accent-gradient);
+        color: white; font-weight: 800; border-radius: 14px;
+        display: flex; align-items: center; justify-content: center;
+        box-shadow: 0 4px 12px rgba(99, 102, 241, 0.3);
+    }
+
+    .badge-status {
+        padding: 6px 14px; border-radius: 12px; font-size: 0.75rem; font-weight: 800;
+        text-transform: uppercase; letter-spacing: 0.5px;
+    }
+    .role-admin { background: #fee2e2; color: #ef4444; }
+    .role-provider { background: #dcfce7; color: #16a34a; }
+    .role-client { background: #e0f2fe; color: #0284c7; }
+
+    .btn-action {
+        width: 36px; height: 36px; border-radius: 10px;
+        display: inline-flex; align-items: center; justify-content: center;
+        transition: 0.2s;
+        border: none;
+    }
+
+    .crud-item {
+        transition: 0.2s;
+        padding: 12px 16px;
+        border-radius: 15px;
+    }
+    .crud-item:hover { background: rgba(255,255,255,0.5); }
+</style>
+
+<div class="container py-4">
+    <div class="d-flex justify-content-between align-items-center mb-5 fade-in-up">
+        <div>
+            <span class="badge text-white px-3 py-2 rounded-pill fw-bold mb-2" style="background-color: #6366f1;">Administration</span>
+            <h1 class="fw-900 mb-0" style="letter-spacing: -2px; font-weight: 900;">MadaServices Dashboard</h1>
+        </div>
+        <div class="text-end d-none d-md-block">
+            <p class="text-muted small mb-0">Dernière mise à jour</p>
+            <p class="fw-bold mb-0">@DateTime.Now.ToString("dd MMMM yyyy")</p>
+        </div>
+    </div>
+
+    <div class="row g-4 mb-5 fade-in-up" style="animation-delay: 0.1s;">
+        <div class="col-md-3">
+            <div class="stat-card">
+                <div class="d-flex align-items-center gap-3">
+                    <div class="p-3 rounded-4 bg-primary bg-opacity-10 text-primary"><i class="bi bi-people fs-4"></i></div>
+                    <div>
+                        <h3 class="mb-0 fw-900">@Model.TotalUsers</h3>
+                        <p class="text-muted small mb-0">Total Membres</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-3">
+            <div class="stat-card">
+                <div class="d-flex align-items-center gap-3">
+                    <div class="p-3 rounded-4 bg-success bg-opacity-10 text-success"><i class="bi bi-patch-check fs-4"></i></div>
+                    <div>
+                        <h3 class="mb-0 fw-900">@Model.VerifiedProvidersCount</h3>
+                        <p class="text-muted small mb-0">Pros Vérifiés</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-3">
+            <div class="stat-card">
+                <div class="d-flex align-items-center gap-3">
+                    <div class="p-3 rounded-4 bg-indigo bg-opacity-10 text-indigo" style="color:#6366f1;"><i class="bi bi-briefcase fs-4"></i></div>
+                    <div>
+                        <h3 class="mb-0 fw-900">@Model.Categories.Count</h3>
+                        <p class="text-muted small mb-0">Métiers actifs</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-3">
+            <div class="stat-card border-0 text-white" style="background: var(--accent-gradient);">
+                <div class="d-flex align-items-center gap-3">
+                    <div class="p-3 rounded-4 bg-white bg-opacity-20"><i class="bi bi-chat-quote fs-4"></i></div>
+                    <div>
+                        <h3 class="mb-0 fw-900">@Model.RecentReviews.Count</h3>
+                        <p class="small mb-0 opacity-75">Nouveaux Avis</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <ul class="nav nav-pills gap-2 mb-4 fade-in-up" id="pills-tab" role="tablist" style="animation-delay: 0.2s;">
+        <li class="nav-item"><button class="nav-link active" data-bs-toggle="pill" data-bs-target="#tab-users"><i class="bi bi-people-fill me-2"></i>Utilisateurs</button></li>
+        <li class="nav-item"><button class="nav-link" data-bs-toggle="pill" data-bs-target="#tab-cat"><i class="bi bi-grid-fill me-2"></i>Métiers & Lieux</button></li>
+        <li class="nav-item"><button class="nav-link" data-bs-toggle="pill" data-bs-target="#tab-rev"><i class="bi bi-chat-left-dots-fill me-2"></i>Modération</button></li>
+    </ul>
+
+    <div class="tab-content fade-in-up" style="animation-delay: 0.3s;">
+        
+        <div class="tab-pane fade show active" id="tab-users">
+            <div class="table-container">
+                <div class="d-flex justify-content-between align-items-center mb-4">
+                    <h4 class="fw-800 mb-0">Gestion des comptes</h4>
+                    <div class="input-group w-25">
+                        <span class="input-group-text bg-transparent border-end-0"><i class="bi bi-search"></i></span>
+                        <input type="text" id="userSearch" class="form-control border-start-0 ps-0" placeholder="Rechercher...">
+                    </div>
+                </div>
+                <div class="table-responsive">
+                    <table class="table align-middle" id="userTable">
+                        <thead class="text-muted small">
+                            <tr>
+                                <th>UTILISATEUR</th>
+                                <th>TYPE</th>
+                                <th>ÉTAT</th>
+                                <th class="text-end">ACTIONS</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            @foreach (var item in Model.RecentUsers) {
+                            <tr>
+                                <td>
+                                    <div class="d-flex align-items-center">
+                                        <div class="user-avatar me-3">@(item.User.FullName?[0] ?? 'U')</div>
+                                        <div>
+                                            <div class="fw-bold">@item.User.FullName</div>
+                                            <div class="small text-muted">@item.User.Email</div>
+                                        </div>
+                                    </div>
+                                </td>
+                                <td><span class="badge-status @(item.Role == "Admin" ? "role-admin" : (item.Role == "Provider" ? "role-provider" : "role-client"))">@item.Role</span></td>
+                                <td>
+                                    @if(item.Role == "Provider") {
+                                        @if(item.IsVerified) { <span class="badge bg-success bg-opacity-10 text-success rounded-pill px-3">Approuvé</span> }
+                                        else { <span class="badge bg-warning bg-opacity-10 text-warning rounded-pill px-3">En attente</span> }
+                                    } else {
+                                        <span class="text-muted small">Client</span>
+                                    }
+                                </td>
+                                <td class="text-end">
+                                    <div class="d-flex justify-content-end gap-2">
+                                        <a asp-action="UserDetails" asp-route-id="@item.User.Id" class="btn btn-sm btn-light border rounded-pill px-3">Détails</a>
+                                        @if(item.Role == "Provider" && !item.IsVerified) {
+                                            <form asp-action="VerifyProvider" asp-route-id="@item.User.Id" method="post" style="display:inline;">
+                                                <button class="btn btn-sm btn-success rounded-pill px-3">Valider</button>
+                                            </form>
+                                        }
+                                        <form asp-action="ToggleUserStatus" asp-route-id="@item.User.Id" method="post" style="display:inline;">
+                                            <button class="btn btn-sm btn-outline-danger border-0 rounded-circle btn-action" title="Statut">
+                                                <i class="bi @(item.User.LockoutEnd > DateTime.Now ? "bi-play-circle-fill text-success" : "bi-slash-circle")"></i>
+                                            </button>
+                                        </form>
+                                    </div>
+                                </td>
+                            </tr>
+                            }
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+
+        <div class="tab-pane fade" id="tab-cat">
+            <div class="row g-4">
+                <div class="col-md-6">
+                    <div class="table-container h-100">
+                        <div class="d-flex justify-content-between align-items-center mb-4">
+                            <h5 class="fw-900 mb-0">Catégories / Métiers</h5>
+                            <button class="btn btn-primary rounded-pill px-4 btn-sm" data-bs-toggle="modal" data-bs-target="#modalCat"><i class="bi bi-plus-lg me-1"></i> Ajouter</button>
+                        </div>
+                        <div class="pe-2" style="max-height: 400px; overflow-y: auto;">
+                            @foreach(var c in Model.Categories) {
+                                <div class="d-flex justify-content-between align-items-center crud-item border-bottom mb-2">
+                                    <span class="fw-bold">@c.Name</span>
+                                    <form asp-action="DeleteCategory" asp-route-id="@c.Id" method="post" onsubmit="return confirm('Supprimer cette catégorie ?')">
+                                        <button class="btn btn-sm btn-outline-danger border-0"><i class="bi bi-trash"></i></button>
+                                    </form>
+                                </div>
+                            }
+                        </div>
+                    </div>
+                </div>
+                <div class="col-md-6">
+                    <div class="table-container h-100">
+                        <div class="d-flex justify-content-between align-items-center mb-4">
+                            <h5 class="fw-900 mb-0">Villes / Secteurs</h5>
+                            <button class="btn btn-primary rounded-pill px-4 btn-sm" data-bs-toggle="modal" data-bs-target="#modalCity"><i class="bi bi-plus-lg me-1"></i> Ajouter</button>
+                        </div>
+                        <div class="pe-2" style="max-height: 400px; overflow-y: auto;">
+                            @foreach(var v in Model.Cities) {
+                                <div class="d-flex justify-content-between align-items-center crud-item border-bottom mb-2">
+                                    <span class="fw-bold">@v.Name</span>
+                                    <form asp-action="DeleteCity" asp-route-id="@v.Id" method="post" onsubmit="return confirm('Supprimer cette ville ?')">
+                                        <button class="btn btn-sm btn-outline-danger border-0"><i class="bi bi-trash"></i></button>
+                                    </form>
+                                </div>
+                            }
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="tab-pane fade" id="tab-rev">
+            <div class="table-container">
+                <h4 class="fw-800 mb-4">Modération des avis</h4>
+                <div class="row">
+                    @if(!Model.RecentReviews.Any()){
+                        <p class="text-center text-muted">Aucun avis récent à modérer.</p>
+                    }
+                    @foreach(var r in Model.RecentReviews) {
+                        <div class="col-md-6 mb-3">
+                            <div class="p-4 border border-white rounded-4 bg-white bg-opacity-40 d-flex flex-column h-100">
+                                <div class="d-flex justify-content-between mb-3">
+                                    <div class="d-flex align-items-center gap-2">
+                                        <div class="bg-primary bg-opacity-10 text-primary rounded-circle d-flex align-items-center justify-content-center" style="width:32px; height:32px; font-size:12px;">@(r.CustomerName?[0] ?? 'A')</div>
+                                        <span class="fw-bold">@r.CustomerName</span>
+                                    </div>
+                                    <div class="text-warning">
+                                        @for(int i=0; i<r.Rating; i++) { <i class="bi bi-star-fill"></i> }
+                                    </div>
+                                </div>
+                                <p class="text-muted flex-grow-1 font-italic">"@r.Comment"</p>
+                                <div class="d-flex justify-content-between align-items-center mt-3 pt-3 border-top">
+                                    <span class="small text-muted">@r.DatePosted.ToShortDateString()</span>
+                                    <form asp-action="DeleteReview" asp-route-id="@r.Id" method="post">
+                                        <button class="btn btn-sm btn-danger rounded-pill px-3 py-1">Supprimer l'avis</button>
+                                    </form>
+                                </div>
+                            </div>
+                        </div>
+                    }
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="modal fade" id="modalCat" tabindex="-1">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content border-0 shadow" style="border-radius: 25px;">
+            <div class="modal-body p-4">
+                <h4 class="fw-900 mb-4">Ajouter un métier</h4>
+                <form asp-action="AddCategory" method="post">
+                    <div class="mb-3">
+                        <label class="form-label small fw-bold">Nom de la catégorie</label>
+                        <input type="text" name="name" class="form-control rounded-3 p-3" placeholder="Ex: Plomberie, Coiffure..." required>
+                    </div>
+                    <div class="d-flex gap-2">
+                        <button type="button" class="btn btn-light rounded-pill flex-grow-1" data-bs-dismiss="modal">Annuler</button>
+                        <button type="submit" class="btn btn-primary rounded-pill flex-grow-1">Enregistrer</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="modal fade" id="modalCity" tabindex="-1">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content border-0 shadow" style="border-radius: 25px;">
+            <div class="modal-body p-4">
+                <h4 class="fw-900 mb-4">Ajouter une ville</h4>
+                <form asp-action="AddCity" method="post">
+                    <div class="mb-3">
+                        <label class="form-label small fw-bold">Nom de la ville / quartier</label>
+                        <input type="text" name="name" class="form-control rounded-3 p-3" placeholder="Ex: Antananarivo, Tamatave..." required>
+                    </div>
+                    <div class="d-flex gap-2">
+                        <button type="button" class="btn btn-light rounded-pill flex-grow-1" data-bs-dismiss="modal">Annuler</button>
+                        <button type="submit" class="btn btn-primary rounded-pill flex-grow-1">Enregistrer</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    <script>
+        // Recherche en temps réel pour le tableau des utilisateurs
+        document.getElementById('userSearch').addEventListener('keyup', function() {
+            let filter = this.value.toLowerCase();
+            let rows = document.querySelectorAll('#userTable tbody tr');
+            
+            rows.forEach(row => {
+                let text = row.textContent.toLowerCase();
+                row.style.display = text.includes(filter) ? '' : 'none';
+            });
+        });
+
+        // Activer les onglets Bootstrap
+        var triggerTabList = [].slice.call(document.querySelectorAll('#pills-tab button'))
+        triggerTabList.forEach(function (triggerEl) {
+          var tabTrigger = new bootstrap.Tab(triggerEl)
+          triggerEl.addEventListener('click', function (event) {
+            event.preventDefault()
+            tabTrigger.show()
+          })
+        });
+    </script>
+}
