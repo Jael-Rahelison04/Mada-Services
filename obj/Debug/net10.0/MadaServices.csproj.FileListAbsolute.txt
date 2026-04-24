@@ -376,3 +376,4 @@ E:\Mada-Services\MadaServices\obj\Debug\net10.0\refint\MadaServices.dll
 E:\Mada-Services\MadaServices\obj\Debug\net10.0\MadaServices.pdb
 E:\Mada-Services\MadaServices\obj\Debug\net10.0\MadaServices.genruntimeconfig.cache
 E:\Mada-Services\MadaServices\obj\Debug\net10.0\ref\MadaServices.dll
+E:\Mada-Services\MadaServices\obj\Debug\net10.0\MadaServices.sourcelink.json

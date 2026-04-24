@@ -17,8 +17,8 @@
                         <input type="file" name="avatarFile" id="avatarInput" class="d-none" onchange="document.getElementById('avatarForm').submit()">
                         <label for="avatarInput" class="mb-0 cursor-pointer">
                             <div class="rounded-circle border border-4 border-white shadow-sm overflow-hidden position-relative avatar-wrapper">
-                                @if (!string.IsNullOrEmpty(Model.ProfileImageUrl)) {
-                                    <img src="@Model.ProfileImageUrl" class="w-100 h-100" style="object-fit: cover;">
+                                @if (!string.IsNullOrEmpty(Model.ImageUrl)) {
+                                    <img src="@Model.ImageUrl" class="w-100 h-100" style="object-fit: cover;">
                                 } else {
                                     <div class="w-100 h-100 d-flex align-items-center justify-content-center bg-gradient-pro text-white">
                                         <span class="fs-2 fw-bold">@Model.FullName?[0]</span>
@@ -117,35 +117,110 @@
         <div class="col-lg-9">
             <div class="tab-content bg-white rounded-4 shadow-sm p-4 p-md-5 border min-vh-75">
                 
-                @* 1. SECTION : PROFIL (Mis à jour avec Téléphone) *@
+                @* 1. SECTION : PROFIL *@
                 <div class="tab-pane fade show active" id="profile">
                     <h4 class="fw-800 mb-4">Informations Publiques</h4>
                     <form asp-controller="Provider" asp-action="UpdateProfile" method="post">
                         @Html.AntiForgeryToken()
                         <div class="row g-4">
+
                             <div class="col-md-6">
                                 <label class="label-pro">MÉTIER / TITRE</label>
-                                <input name="JobTitle" value="@Model.JobTitle" class="form-control input-pro" required>
+                                <input name="JobTitle"
+                                    value="@Model.JobTitle"
+                                    class="form-control input-pro"
+                                    required>
                             </div>
+
                             <div class="col-md-6">
                                 <label class="label-pro">VILLE</label>
-                                <input name="City" value="@Model.City" class="form-control input-pro" required>
+                                <input name="City"
+                                    value="@Model.City"
+                                    class="form-control input-pro"
+                                    required>
                             </div>
+
                             <div class="col-md-6">
                                 <label class="label-pro">TARIF HORAIRE (Ar)</label>
-                                <input type="number" name="HourlyRate" value="@Model.HourlyRate" class="form-control input-pro" required>
+                                <input type="text"
+                                    name="HourlyRate"
+                                    value="@Model.HourlyRate.ToString("F0", System.Globalization.CultureInfo.InvariantCulture)"
+                                    class="form-control input-pro"
+                                    placeholder="Ex: 15000"
+                                    pattern="[0-9]+"
+                                    inputmode="numeric">
+                                <div class="form-text text-muted">Entrez un montant entier en Ariary</div>
                             </div>
+
                             <div class="col-md-6">
                                 <label class="label-pro">TÉLÉPHONE DE CONTACT</label>
-                                <input name="PhoneNumber" value="@Model.PhoneNumber" class="form-control input-pro" placeholder="+261 ...">
+                                <input type="tel"
+                                    name="PhoneNumber"
+                                    value="@(Model.Phone ?? Model.PhoneNumber ?? "")"
+                                    class="form-control input-pro"
+                                    placeholder="+261 34 XX XXX XX">
                             </div>
+
+                            <div class="col-md-12">
+                                <label class="label-pro">CATÉGORIE DE SERVICE</label>
+
+                                @{
+                                    // Récupérer la liste depuis le ViewBag
+                                    var categoriesList = ViewBag.Categories as
+                                        List<MadaServices.Models.Category>
+                                        ?? new List<MadaServices.Models.Category>();
+                                }
+
+                                @if (categoriesList.Any())
+                                {
+                                    <select name="CategoryId" class="form-select input-pro">
+
+                                        <option value="0" selected="@(Model.CategoryId == null || Model.CategoryId == 0)">
+                                            — Choisir une catégorie —
+                                        </option>
+
+                                        <!-- Pour la boucle foreach -->
+                                        @foreach (var cat in categoriesList)
+                                        {
+                                            <option value="@cat.Id" selected="@(Model.CategoryId == cat.Id)">
+                                                @cat.Name
+                                            </option>
+                                        }
+                                    </select>
+
+                                    @if (Model.Category != null)
+                                    {
+                                        <div class="mt-2 d-flex align-items-center gap-2">
+                                            <span class="text-muted small">Catégorie actuelle :</span>
+                                            <span class="badge rounded-pill px-3 py-2"
+                                                style="background:#ecfdf5; color:#059669; font-weight:700;">
+                                                <i class="bi bi-tag-fill me-1"></i>@Model.Category.Name
+                                            </span>
+                                        </div>
+                                    }
+                                }
+                                else
+                                {
+                                    <div class="alert alert-light border rounded-3 py-2 px-3 small">
+                                        <i class="bi bi-info-circle text-muted me-2"></i>
+                                        Aucune catégorie disponible. Demandez à l'administrateur d'en créer.
+                                    </div>
+                                }
+                            </div>
+
                             <div class="col-md-12">
                                 <label class="label-pro">DESCRIPTION</label>
-                                <textarea name="Description" class="form-control input-pro" rows="4">@Model.Description</textarea>
+                                <textarea name="Description"
+                                        class="form-control input-pro"
+                                        rows="4">@Model.Description</textarea>
                             </div>
+
                             <div class="col-12 text-end mt-4">
-                                <button type="submit" class="btn btn-primary-mada px-5 rounded-pill shadow-sm">Mettre à jour mon profil</button>
+                                <button type="submit" class="btn btn-primary-mada px-5 rounded-pill shadow-sm">
+                                    <i class="bi bi-save me-2"></i>Mettre à jour mon profil
+                                </button>
                             </div>
+
                         </div>
                     </form>
                 </div>
@@ -246,39 +321,85 @@
                 </div>
 
                 @* 5. SECTION : PORTFOLIO *@
+                <!-- ✅ CORRECTION P12 : Afficher le compteur et bloquer si limite atteinte -->
                 <div class="tab-pane fade" id="portfolio">
-                    <h4 class="fw-800 mb-4">Ma Galerie Portfolio</h4>
-                    <form asp-controller="Provider" asp-action="UploadPortfolio" method="post" enctype="multipart/form-data" class="mb-5 p-4 bg-light rounded-4 border">
-                        <div class="row g-3">
-                            <div class="col-md-5">
-                                <label class="label-pro">NOUVELLE IMAGE</label>
-                                <input type="file" name="portfolioFile" class="form-control" required>
+                    <div class="d-flex justify-content-between align-items-center mb-4">
+                        <h4 class="fw-800">Ma Galerie Portfolio</h4>
+                        <!-- Compteur de photos -->
+                        <span class="badge @(Model.PortfolioCount >= 10 ? "bg-danger" : "bg-primary") rounded-pill px-3 py-2">
+                            @Model.PortfolioCount / 10 photos
+                        </span>
+                    </div>
+
+                    <!-- Formulaire d'upload : visible seulement si moins de 10 photos -->
+                    @if (Model.PortfolioCount < 10)
+                    {
+                        <form asp-controller="Provider" asp-action="UploadPortfolio"
+                            method="post" enctype="multipart/form-data"
+                            class="mb-5 p-4 bg-light rounded-4 border">
+                            @Html.AntiForgeryToken()
+                            <div class="row g-3">
+                                <div class="col-md-5">
+                                    <label class="label-pro">NOUVELLE IMAGE</label>
+                                    <input type="file" name="portfolioFile" class="form-control" required
+                                        accept=".jpg,.jpeg,.png,.webp,.gif">
+                                </div>
+                                <div class="col-md-5">
+                                    <label class="label-pro">LÉGENDE</label>
+                                    <input type="text" name="description" class="form-control"
+                                        placeholder="Titre du projet">
+                                </div>
+                                <div class="col-md-2 d-flex align-items-end">
+                                    <button type="submit" class="btn btn-dark w-100 rounded-pill py-2">
+                                        Ajouter
+                                    </button>
+                                </div>
                             </div>
-                            <div class="col-md-5">
-                                <label class="label-pro">LÉGENDE</label>
-                                <input type="text" name="description" class="form-control" placeholder="Titre du projet">
-                            </div>
-                            <div class="col-md-2 d-flex align-items-end">
-                                <button type="submit" class="btn btn-dark w-100 rounded-pill py-2">Ajouter</button>
+                            <p class="text-muted small mt-2 mb-0">
+                                <i class="bi bi-info-circle me-1"></i>
+                                Il vous reste <strong>@(10 - Model.PortfolioCount)</strong> emplacement(s).
+                            </p>
+                        </form>
+                    }
+                    else
+                    {
+                        <!-- Message quand la limite est atteinte -->
+                        <div class="alert alert-warning rounded-4 mb-4 d-flex align-items-center gap-3">
+                            <i class="bi bi-exclamation-triangle-fill fs-4"></i>
+                            <div>
+                                <strong>Limite atteinte !</strong> Vous avez 10 photos dans votre portfolio.
+                                Supprimez une photo pour en ajouter une nouvelle.
                             </div>
                         </div>
-                    </form>
+                    }
+
+                    <!-- Galerie -->
                     <div class="row g-3">
                         @if (Model.PortfolioItems?.Any() == true) {
                             @foreach (var item in Model.PortfolioItems) {
                                 <div class="col-md-4">
-                                    <div class="portfolio-card shadow-sm border bg-white rounded-3 overflow-hidden position-relative">
+                                    <div class="portfolio-card shadow-sm border bg-white rounded-3 overflow-hidden">
                                         <img src="@item.ImageUrl" class="w-100" style="height:180px; object-fit:cover;">
                                         <div class="p-2 d-flex justify-content-between align-items-center">
                                             <span class="small fw-bold text-truncate me-2">@item.Description</span>
-                                            <form asp-action="DeletePortfolioItem" method="post">
+                                            <!-- ✅ CORRECTION P8 : Formulaire pointe vers Provider (pas Dashboard) -->
+                                            <form asp-controller="Provider" asp-action="DeletePortfolioItem" method="post">
+                                                @Html.AntiForgeryToken()
                                                 <input type="hidden" name="id" value="@item.Id" />
-                                                <button type="submit" class="btn btn-link text-danger p-0"><i class="bi bi-trash"></i></button>
+                                                <button type="submit" class="btn btn-link text-danger p-0"
+                                                        onclick="return confirm('Supprimer cette photo ?')">
+                                                    <i class="bi bi-trash"></i>
+                                                </button>
                                             </form>
                                         </div>
                                     </div>
                                 </div>
                             }
+                        } else {
+                            <div class="col-12 text-center py-4 text-muted">
+                                <i class="bi bi-images display-4 d-block mb-2 opacity-25"></i>
+                                Aucune réalisation ajoutée pour le moment.
+                            </div>
                         }
                     </div>
                 </div>
@@ -310,23 +431,103 @@
                 </div>
 
                 @* 7. SECTION : VÉRIFICATION *@
+                <!-- ✅ CORRECTION P10 : Section vérification complète et fonctionnelle -->
                 <div class="tab-pane fade" id="verification">
                     <h4 class="fw-800 mb-4">Vérification d'Identité</h4>
-                    @if(Model.IsVerified) {
+
+                    @if (Model.IsVerified)
+                    {
+                        <!-- Cas 1 : Déjà vérifié -->
                         <div class="alert alert-success rounded-4 d-flex align-items-center p-4">
-                            <i class="bi bi-check-circle-fill fs-1 me-4"></i>
+                            <i class="bi bi-patch-check-fill fs-1 me-4 text-success"></i>
                             <div>
-                                <h5 class="fw-bold mb-0">Profil Certifié</h5>
-                                <p class="mb-0 small">Vous avez accès à toutes les fonctionnalités et une meilleure visibilité.</p>
+                                <h5 class="fw-bold mb-1">✅ Profil Certifié</h5>
+                                <p class="mb-0 small">
+                                    Votre identité a été vérifiée. Vous bénéficiez d'une meilleure
+                                    visibilité et d'un badge de confiance sur votre profil.
+                                </p>
                             </div>
                         </div>
-                    } else {
-                        <div class="card border-dashed p-5 text-center bg-light rounded-4">
-                            <i class="bi bi-shield-lock display-4 text-muted mb-3"></i>
-                            <h5>Obtenir le badge de confiance</h5>
-                            <p class="text-muted small">Envoyez vos pièces justificatives (CIN ou Passeport) pour certifier votre profil.</p>
-                            <button class="btn btn-primary-mada rounded-pill px-4 mx-auto">Téléverser mes documents</button>
+                    }
+                    else if (Model.VerificationStatus == "Pending")
+                    {
+                        <!-- Cas 2 : Document envoyé, en attente de validation -->
+                        <div class="alert alert-info rounded-4 d-flex align-items-center p-4">
+                            <i class="bi bi-hourglass-split fs-1 me-4 text-primary"></i>
+                            <div>
+                                <h5 class="fw-bold mb-1">⏳ Dossier en cours d'examen</h5>
+                                <p class="mb-0 small">
+                                    Vos documents ont bien été reçus. L'administrateur validera
+                                    votre profil dans un délai de 48h ouvrées.
+                                </p>
+                            </div>
                         </div>
+                    }
+                    else if (Model.VerificationStatus == "Rejected")
+                    {
+                        <!-- Cas 3 : Document rejeté → permettre de re-soumettre -->
+                        <div class="alert alert-danger rounded-4 mb-4 d-flex align-items-center p-4">
+                            <i class="bi bi-x-circle-fill fs-1 me-4 text-danger"></i>
+                            <div>
+                                <h5 class="fw-bold mb-1">❌ Dossier refusé</h5>
+                                <p class="mb-0 small">
+                                    Votre document n'a pas pu être accepté. Veuillez soumettre
+                                    un document plus lisible ou un document valide.
+                                </p>
+                            </div>
+                        </div>
+
+                        <!-- Formulaire de re-soumission -->
+                        <form asp-controller="Provider" asp-action="UploadVerificationDocument"
+                            method="post" enctype="multipart/form-data"
+                            class="p-4 bg-light rounded-4 border">
+                            @Html.AntiForgeryToken()
+                            <label class="label-pro mb-2">NOUVEAU DOCUMENT (CIN, Passeport ou Diplôme)</label>
+                            <div class="input-group">
+                                <input type="file" name="documentFile" class="form-control"
+                                    accept=".jpg,.jpeg,.png,.pdf" required>
+                                <button type="submit" class="btn btn-danger px-4 fw-bold">
+                                    Re-soumettre
+                                </button>
+                            </div>
+                            <p class="text-muted small mt-2 mb-0">Formats acceptés : jpg, png, pdf — max 5 Mo</p>
+                        </form>
+                    }
+                    else
+                    {
+                        <!-- Cas 4 : Jamais soumis (NotSubmitted) -->
+                        <div class="card border-0 bg-light rounded-4 p-5 text-center mb-4">
+                            <i class="bi bi-shield-lock display-4 text-muted mb-3"></i>
+                            <h5 class="fw-bold mb-2">Obtenez le badge de confiance</h5>
+                            <p class="text-muted small mx-auto mb-0" style="max-width: 450px;">
+                                Téléversez une pièce d'identité (CIN ou Passeport) pour certifier
+                                votre profil. Cela augmente votre visibilité et inspire confiance aux clients.
+                            </p>
+                        </div>
+
+                        <!-- ✅ CORRECTION P10 : Formulaire fonctionnel avec action correcte -->
+                        <form asp-controller="Provider" asp-action="UploadVerificationDocument"
+                            method="post" enctype="multipart/form-data"
+                            class="p-4 bg-white rounded-4 border shadow-sm">
+                            @Html.AntiForgeryToken()
+                            <div class="row g-3 align-items-end">
+                                <div class="col-md-8">
+                                    <label class="label-pro mb-2">
+                                        DOCUMENT D'IDENTITÉ (CIN, Passeport ou Diplôme)
+                                    </label>
+                                    <input type="file" name="documentFile" class="form-control"
+                                        accept=".jpg,.jpeg,.png,.pdf" required>
+                                    <p class="text-muted small mt-1 mb-0">
+                                        Formats acceptés : jpg, png, pdf — max 5 Mo
+                                    </p>
+                                </div>
+                                <div class="col-md-4">
+                                    <button type="submit" class="btn btn-primary-mada w-100 rounded-pill py-3 fw-bold">
+                                        <i class="bi bi-cloud-upload me-2"></i>Envoyer le document
+                                    </button>
+                                </div>
+                            </div>
+                        </form>
                     }
                 </div>
 

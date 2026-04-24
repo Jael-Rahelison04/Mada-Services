@@ -18,16 +18,24 @@ public class HomeController : Controller
     // --- PAGE D'ACCUEIL ---
     public async Task<IActionResult> Index()
     {
-        // CORRECTION : On utilise une expression conditionnelle simple (ternaire)
-        // EF traduit cela très bien en : CASE WHEN EXISTS... THEN AVG... ELSE 0 END
+        // 1. Prestataires vedettes (gardé tel quel)
         var featuredProviders = await _context.Providers
             .Include(p => p.Reviews)
-            .OrderByDescending(p => p.Reviews.Any() 
-                ? p.Reviews.Average(r => (double)r.Rating) 
+            .OrderByDescending(p => p.Reviews.Any()
+                ? p.Reviews.Average(r => (double)r.Rating)
                 : 0)
             .Take(4)
             .ToListAsync();
-            
+
+        // 2. Données pour les filtres de la page d’accueil
+        ViewBag.Cities = await _context.Cities
+            .OrderBy(c => c.Name)
+            .ToListAsync();
+
+        ViewBag.Categories = await _context.Categories
+            .OrderBy(c => c.Name)
+            .ToListAsync();
+
         return View(featuredProviders);
     }
 
@@ -40,9 +48,7 @@ public class HomeController : Controller
 
         if (provider == null) return NotFound();
 
-        // Détermine si on affiche le contact (utilisé dans la vue)
-        ViewBag.IsAuthenticated = User.Identity?.IsAuthenticated ?? false;
-
+        // Plus besoin de ViewBag.IsAuthenticated
         return View(provider);
     }
 

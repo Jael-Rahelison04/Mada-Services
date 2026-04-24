@@ -165,39 +165,19 @@
 
     <div class="row g-4" id="expertGrid">
         @{ int delayCount = 0; }
-        @foreach (var pro in Model) {
-            // Correction de l'erreur CS1003 : On pré-calcule la chaîne de délai
-            string d = (0.1 * (delayCount % 4)).ToString("0.0", System.Globalization.CultureInfo.InvariantCulture) + "s";
-            
-            <div class="col-xl-3 col-lg-4 col-sm-6 pro-item reveal" 
-                 data-cat-id="@pro.CategoryId" 
-                 data-city-name="@pro.City" 
-                 data-search-blob="@(pro.FullName?.ToLower() ?? "") @(pro.JobTitle?.ToLower() ?? "") @(pro.City?.ToLower() ?? "")"
-                 style="transition-delay: @d">
-                
-                <div class="talent-card">
-                    <div class="avatar-wrapper">
-                        @if (!string.IsNullOrEmpty(pro.ProfileImageUrl)) {
-                            <img src="@pro.ProfileImageUrl" class="talent-avatar" alt="@pro.FullName">
-                        } else {
-                            <div class="talent-placeholder">@((pro.FullName ?? "P")[0])</div>
-                        }
-                        <div class="status-dot @(pro.IsPaused ? "status-offline" : "status-online")"></div>
-                    </div>
+        @foreach (var pro in Model)
+        {
+            string d = (0.1 * (delayCount % 4))
+                .ToString("0.0", System.Globalization.CultureInfo.InvariantCulture) + "s";
 
-                    <div class="price-tag mb-3">@(pro.HourlyRate > 0 ? pro.HourlyRate.ToString("N0") + " Ar/h" : "Sur devis")</div>
-                    <h6 class="fw-800 mb-1 text-truncate">@(pro.FullName ?? "Prestataire")</h6>
-                    <p class="small fw-bold mb-2" style="color: var(--brand-purple)">@pro.JobTitle</p>
-                    
-                    <div class="d-flex justify-content-center gap-2 mb-3">
-                        <span class="badge bg-light text-warning rounded-pill border">
-                            <i class="bi bi-star-fill me-1"></i>@(pro.AverageRating > 0 ? pro.AverageRating.ToString("F1") : "New")
-                        </span>
-                        <span class="badge bg-light text-muted rounded-pill border">@pro.City</span>
-                    </div>
+            <div class="col-xl-3 col-lg-4 col-sm-6 pro-item reveal"
+                data-cat-id="@pro.CategoryId"
+                data-city-name="@pro.City"
+                data-search-blob="@(pro.FullName?.ToLower() ?? "") @(pro.JobTitle?.ToLower() ?? "") @(pro.City?.ToLower() ?? "")"
+                style="transition-delay: @d">
 
-                    <a asp-controller="Provider" asp-action="Details" asp-route-id="@pro.Id" class="btn btn-profile-vibrant">Voir Profil</a>
-                </div>
+                @await Html.PartialAsync("_ProviderCard", pro)
+
             </div>
             delayCount++;
         }
@@ -246,6 +226,15 @@
             this.classList.add('active');
             updateDisplay();
         }));
+
+        // Réinitialisation des filtres
+        document.getElementById('resetFilters').addEventListener('click', () => {
+            document.getElementById('liveSearch').value = '';
+            document.getElementById('cityFilter').value = 'all';
+            document.querySelectorAll('.pill-item').forEach(p => p.classList.remove('active'));
+            document.querySelector('.pill-item[data-category="all"]').classList.add('active');
+            updateDisplay();
+        });
 
         const observer = new IntersectionObserver((entries) => {
             entries.forEach(entry => { if (entry.isIntersecting) entry.target.classList.add('active'); });

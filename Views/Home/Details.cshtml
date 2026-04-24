@@ -2,7 +2,7 @@
 @{
     ViewData["Title"] = Model?.FullName ?? "Détails de l'expert";
     // On utilise soit ViewBag soit l'authentification directe
-    bool canSeeContact = ViewBag.ShowContact ?? (User.Identity?.IsAuthenticated ?? false);
+    bool canSeeContact = User.Identity?.IsAuthenticated ?? false;
     
     double averageRating = (Model?.Reviews != null && Model.Reviews.Any()) 
         ? Model.Reviews.Average(r => r.Rating) 
@@ -183,7 +183,7 @@
             <div class="row g-0">
                 <div class="col-lg-4 profile-aside">
                     <div class="avatar-wrapper-detail">
-                        <img src="@(string.IsNullOrEmpty(Model.ProfileImageUrl) ? "/images/default-avatar.png" : Model.ProfileImageUrl)" 
+                        <img src="@(string.IsNullOrEmpty(Model.ImageUrl) ? "/images/default-avatar.png" : Model.ImageUrl)" 
                              class="avatar-detail-img" 
                              alt="@Model.FullName">
                         

@@ -22,6 +22,7 @@ namespace MadaServices.Data
         public DbSet<Booking> Bookings { get; set; } = default!;
         public DbSet<Availability> Availabilities { get; set; } = default!;
 
+        // Data/ApplicationDbContext.cs (SECTION OnModelCreating mise à jour)
         protected override void OnModelCreating(ModelBuilder builder)
         {
             base.OnModelCreating(builder);
@@ -32,37 +33,35 @@ namespace MadaServices.Data
                 entity.Property(e => e.ProviderKey).HasMaxLength(100);
             });
 
-            // RELATION : Provider -> Category
+            // RELATION : Provider → Category
             builder.Entity<Provider>()
                 .HasOne(p => p.Category)
                 .WithMany(c => c.Providers)
                 .HasForeignKey(p => p.CategoryId)
                 .OnDelete(DeleteBehavior.SetNull);
 
-            // RELATION : Review -> Provider
+            // RELATION : Review → Provider (ClientId est maintenant int)
             builder.Entity<Review>()
                 .HasOne(r => r.Provider)
-                .WithMany(p => p.Reviews) 
+                .WithMany(p => p.Reviews)
                 .HasForeignKey(r => r.ProviderId)
                 .OnDelete(DeleteBehavior.Cascade);
 
-            // RELATION : PortfolioItem -> Provider
+            // RELATION : PortfolioItem → Provider
             builder.Entity<PortfolioItem>()
                 .HasOne(pi => pi.Provider)
                 .WithMany(p => p.PortfolioItems)
                 .HasForeignKey(pi => pi.ProviderId)
                 .OnDelete(DeleteBehavior.Cascade);
 
-            // --- NOUVELLES RELATIONS ---
-
-            // RELATION : Booking -> Provider
+            // RELATION : Booking → Provider
             builder.Entity<Booking>()
-                .HasOne<Provider>() // Relation vers Provider
+                .HasOne<Provider>()
                 .WithMany(p => p.Bookings)
                 .HasForeignKey(b => b.ProviderId)
                 .OnDelete(DeleteBehavior.Cascade);
 
-            // RELATION : Availability -> Provider
+            // RELATION : Availability → Provider
             builder.Entity<Availability>()
                 .HasOne<Provider>()
                 .WithMany(p => p.Availabilities)

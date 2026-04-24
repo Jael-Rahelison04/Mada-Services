@@ -1,3 +1,4 @@
+// Controllers/CustomerController.cs (VERSION ENTIÈREMENT CORRIGÉE)
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.AspNetCore.Authorization;
@@ -8,99 +9,220 @@ using Microsoft.AspNetCore.Identity;
 
 namespace MadaServices.Controllers
 {
-    [Authorize]
+    // ✅ CORRECTION C3 : Ajout de Roles = "Client" pour empêcher
+    // les prestataires et admins d'accéder à cet espace
+    [Authorize(Roles = "Client")]
     public class CustomerController : Controller
     {
         private readonly ApplicationDbContext _context;
         private readonly IWebHostEnvironment _environment;
         private readonly UserManager<User> _userManager;
 
-        public CustomerController(ApplicationDbContext context, IWebHostEnvironment environment, UserManager<User> userManager)
+        public CustomerController(
+            ApplicationDbContext context,
+            IWebHostEnvironment environment,
+            UserManager<User> userManager)
         {
             _context = context;
             _environment = environment;
             _userManager = userManager;
         }
 
-        // --- DASHBOARD CLIENT ---
+        // ─────────────────────────────────────────────
+        // DASHBOARD CLIENT
+        // ─────────────────────────────────────────────
         public async Task<IActionResult> Index()
         {
-            var userIdStr = User.FindFirstValue(ClaimTypes.NameIdentifier);
-            if (string.IsNullOrEmpty(userIdStr)) return Challenge();
+            var user = await _userManager.GetUserAsync(User);
+            if (user == null) return Challenge();
 
-            // Récupère les avis récents du client
+            // ✅ CORRECTION C1 : Utilisation de user.Id (int) au lieu de userIdStr (string)
             var myReviews = await _context.Reviews
                 .Include(r => r.Provider)
-                .Where(r => r.ClientId == userIdStr)
-                .OrderByDescending(r => r.DatePosted) 
+                .Where(r => r.ClientId == user.Id)   // ← int == int (correct)
+                .OrderByDescending(r => r.DatePosted)
                 .Take(5)
                 .ToListAsync();
 
-            ViewBag.TotalReviews = await _context.Reviews.CountAsync(r => r.ClientId == userIdStr);
-            
+            ViewBag.TotalReviews = await _context.Reviews
+                .CountAsync(r => r.ClientId == user.Id);  // ← int
+
             var lastReview = await _context.Reviews
                 .Include(r => r.Provider)
-                .Where(r => r.ClientId == userIdStr)
+                .Where(r => r.ClientId == user.Id)
                 .OrderByDescending(r => r.DatePosted)
                 .FirstOrDefaultAsync();
-            
+
             ViewBag.LastProvider = lastReview?.Provider?.FullName ?? "Aucun";
 
-            // Liste des prestataires pour le modal de réservation et d'avis
             ViewBag.ProvidersList = await _context.Providers
+                .Where(p => !p.IsPaused)
                 .OrderBy(p => p.FullName)
                 .ToListAsync();
 
             return View(myReviews);
         }
 
-        // --- HISTORIQUE DES DEMANDES (Résout l'erreur 404 /Customer/MyBookings) ---
+        // ─────────────────────────────────────────────
+        // HISTORIQUE DES DEMANDES
+        // ─────────────────────────────────────────────
         public async Task<IActionResult> MyBookings()
         {
             var user = await _userManager.GetUserAsync(User);
             if (user == null) return Challenge();
 
-            // On filtre par CustomerName (puisque c'est ce qui est dans ton modèle Booking)
-            // Ou mieux, si tu ajoutes ClientId dans Booking, filtre par ID.
+            // ✅ CORRECTION C2 : Recherche par ClientId (int) au lieu du nom
+            // Plus de collision si deux clients ont le même prénom/nom
             var bookings = await _context.Bookings
-                .Where(b => b.CustomerName == user.FullName) 
+                .Where(b => b.ClientId == user.Id)       // ← int == int (correct)
                 .OrderByDescending(b => b.CreatedAt)
                 .ToListAsync();
 
             return View(bookings);
         }
 
-        // --- CRÉER UNE DEMANDE (Action pour le Modal de réservation) ---
+        // ─────────────────────────────────────────────
+        // CRÉER UNE RÉSERVATION
+        // ─────────────────────────────────────────────
         [HttpPost]
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> CreateBooking(Booking booking)
         {
             var user = await _userManager.GetUserAsync(User);
-            
-            // On s'assure que les données obligatoires sont là
+            if (user == null) return Challenge();
+
             booking.CreatedAt = DateTime.Now;
             booking.Status = "Pending";
-            
-            // On force le nom du client depuis l'utilisateur connecté pour la sécurité
-            if (user != null) {
-                booking.CustomerName = user.FullName ?? user.UserName ?? "Client";
+            booking.CustomerName = user.FullName ?? user.UserName ?? "Client";
+
+            // ✅ CORRECTION C2 : Stocker le ClientId (int) pour identifier
+            // le client de façon unique et fiable
+            booking.ClientId = user.Id;
+
+            // Validation basique
+            if (booking.ProviderId <= 0 || string.IsNullOrWhiteSpace(booking.ServiceName))
+            {
+                TempData["Error"] = "Informations de réservation incomplètes.";
+                return RedirectToAction(nameof(Index));
             }
 
-            if (ModelState.IsValid)
+            // Vérifier que le prestataire existe et n'est pas en pause
+            var providerExists = await _context.Providers
+                .AnyAsync(p => p.Id == booking.ProviderId && !p.IsPaused);
+
+            if (!providerExists)
             {
-                _context.Bookings.Add(booking);
-                await _context.SaveChangesAsync();
-                TempData["Success"] = "Votre demande a été envoyée avec succès !";
-            }
-            else
-            {
-                TempData["Error"] = "Une erreur est survenue lors de l'envoi de la demande.";
+                TempData["Error"] = "Ce prestataire n'est pas disponible actuellement.";
+                return RedirectToAction(nameof(Index));
             }
 
+            _context.Bookings.Add(booking);
+            await _context.SaveChangesAsync();
+
+            TempData["Success"] = "Votre demande a été envoyée avec succès !";
             return RedirectToAction(nameof(Index));
         }
 
-        // --- PROFIL PUBLIC ---
+        // ─────────────────────────────────────────────
+        // DÉPOSER UN AVIS
+        // ─────────────────────────────────────────────
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        public async Task<IActionResult> CreateReview(int providerId, int rating, string? comment)
+        {
+            var user = await _userManager.GetUserAsync(User);
+            if (user == null) return Challenge();
+
+            // Validation de la note
+            if (rating < 1 || rating > 5)
+            {
+                TempData["Error"] = "La note doit être entre 1 et 5.";
+                return RedirectToAction(nameof(Index));
+            }
+
+            // Vérifier qu'un client ne note pas lui-même
+            if (user.Id == providerId)
+            {
+                TempData["Error"] = "Vous ne pouvez pas noter votre propre profil.";
+                return RedirectToAction(nameof(Index));
+            }
+
+            // ✅ CORRECTION C1 : Vérification doublon avec int == int
+            bool alreadyReviewed = await _context.Reviews
+                .AnyAsync(r => r.ClientId == user.Id && r.ProviderId == providerId);
+
+            if (alreadyReviewed)
+            {
+                TempData["Error"] = "Vous avez déjà déposé un avis sur ce prestataire.";
+                return RedirectToAction(nameof(Index));
+            }
+
+            var review = new Review
+            {
+                ProviderId = providerId,
+                ClientId = user.Id,           // ✅ int au lieu de string
+                CustomerName = user.FullName ?? user.UserName ?? "Client",
+                Rating = rating,
+                Comment = comment ?? "",
+                DatePosted = DateTime.Now
+            };
+
+            _context.Reviews.Add(review);
+            await _context.SaveChangesAsync();
+
+            TempData["Success"] = "Votre avis a été publié avec succès !";
+            return RedirectToAction(nameof(Index));
+        }
+
+        // ─────────────────────────────────────────────
+        // SUPPRIMER UN AVIS
+        // ─────────────────────────────────────────────
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        public async Task<IActionResult> DeleteReview(int id)
+        {
+            var user = await _userManager.GetUserAsync(User);
+            if (user == null) return Challenge();
+
+            // ✅ CORRECTION C1 : Vérification avec int == int
+            var review = await _context.Reviews
+                .FirstOrDefaultAsync(r => r.Id == id && r.ClientId == user.Id);
+
+            if (review != null)
+            {
+                _context.Reviews.Remove(review);
+                await _context.SaveChangesAsync();
+                TempData["Success"] = "Avis supprimé avec succès.";
+            }
+            else
+            {
+                TempData["Error"] = "Avis introuvable ou non autorisé.";
+            }
+
+            return RedirectToAction(nameof(MyReviews));
+        }
+
+        // ─────────────────────────────────────────────
+        // MES AVIS
+        // ─────────────────────────────────────────────
+        public async Task<IActionResult> MyReviews()
+        {
+            var user = await _userManager.GetUserAsync(User);
+            if (user == null) return Challenge();
+
+            // ✅ CORRECTION C1 : Filtrage par int
+            var myReviews = await _context.Reviews
+                .Include(r => r.Provider)
+                .Where(r => r.ClientId == user.Id)
+                .OrderByDescending(r => r.DatePosted)
+                .ToListAsync();
+
+            return View(myReviews);
+        }
+
+        // ─────────────────────────────────────────────
+        // PROFIL PUBLIC D'UN UTILISATEUR
+        // ─────────────────────────────────────────────
         public async Task<IActionResult> PublicProfile(int id)
         {
             if (id <= 0) return NotFound();
@@ -111,7 +233,9 @@ namespace MadaServices.Controllers
             return View(user);
         }
 
-        // --- RÉGLAGES PROFIL ---
+        // ─────────────────────────────────────────────
+        // PARAMÈTRES DU PROFIL
+        // ─────────────────────────────────────────────
         public async Task<IActionResult> Settings()
         {
             var user = await _userManager.GetUserAsync(User);
@@ -143,10 +267,19 @@ namespace MadaServices.Controllers
 
             if (model.ProfilePicture != null && model.ProfilePicture.Length > 0)
             {
+                // Vérification du type de fichier
+                var allowedExtensions = new[] { ".jpg", ".jpeg", ".png", ".webp" };
+                var ext = Path.GetExtension(model.ProfilePicture.FileName).ToLower();
+                if (!allowedExtensions.Contains(ext))
+                {
+                    TempData["Error"] = "Format d'image non supporté (jpg, png, webp uniquement).";
+                    return RedirectToAction(nameof(Settings));
+                }
+
                 string uploadsFolder = Path.Combine(_environment.WebRootPath, "uploads", "profiles");
                 if (!Directory.Exists(uploadsFolder)) Directory.CreateDirectory(uploadsFolder);
 
-                string uniqueFileName = Guid.NewGuid().ToString() + "_" + Path.GetFileName(model.ProfilePicture.FileName);
+                string uniqueFileName = Guid.NewGuid().ToString() + ext;
                 string filePath = Path.Combine(uploadsFolder, uniqueFileName);
 
                 using (var fileStream = new FileStream(filePath, FileMode.Create))
@@ -157,77 +290,12 @@ namespace MadaServices.Controllers
             }
 
             var result = await _userManager.UpdateAsync(user);
-            if (result.Succeeded) TempData["Success"] = "Profil mis à jour !";
-            else TempData["Error"] = "Erreur de mise à jour.";
+            if (result.Succeeded)
+                TempData["Success"] = "Profil mis à jour avec succès !";
+            else
+                TempData["Error"] = "Erreur lors de la mise à jour.";
 
             return RedirectToAction(nameof(Settings));
-        }
-
-        // --- GESTION DES AVIS ---
-        public async Task<IActionResult> MyReviews()
-        {
-            var userIdStr = User.FindFirstValue(ClaimTypes.NameIdentifier);
-            if (string.IsNullOrEmpty(userIdStr)) return Challenge();
-            
-            var myReviews = await _context.Reviews
-                .Include(r => r.Provider)
-                .Where(r => r.ClientId == userIdStr)
-                .OrderByDescending(r => r.DatePosted)
-                .ToListAsync();
-
-            return View(myReviews);
-        }
-
-        [HttpPost]
-        [ValidateAntiForgeryToken]
-        public async Task<IActionResult> CreateReview(int providerId, int rating, string? comment)
-        {
-            var userIdStr = User.FindFirstValue(ClaimTypes.NameIdentifier);
-            if (string.IsNullOrEmpty(userIdStr)) return Challenge();
-
-            var user = await _userManager.FindByIdAsync(userIdStr);
-            
-            bool alreadyReviewed = await _context.Reviews
-                .AnyAsync(r => r.ClientId == userIdStr && r.ProviderId == providerId);
-
-            if (alreadyReviewed)
-            {
-                TempData["Error"] = "Vous avez déjà déposé un avis sur ce prestataire.";
-                return RedirectToAction(nameof(Index));
-            }
-
-            var review = new Review
-            {
-                ProviderId = providerId,
-                ClientId = userIdStr,
-                CustomerName = user?.FullName ?? "Client",
-                Rating = rating,
-                Comment = comment ?? "", 
-                DatePosted = DateTime.Now 
-            };
-
-            _context.Reviews.Add(review);
-            await _context.SaveChangesAsync();
-            
-            TempData["Success"] = "Avis publié !";
-            return RedirectToAction(nameof(Index));
-        }
-
-        [HttpPost]
-        [ValidateAntiForgeryToken]
-        public async Task<IActionResult> DeleteReview(int id)
-        {
-            var userIdStr = User.FindFirstValue(ClaimTypes.NameIdentifier);
-            var review = await _context.Reviews
-                .FirstOrDefaultAsync(r => r.Id == id && r.ClientId == userIdStr);
-
-            if (review != null)
-            {
-                _context.Reviews.Remove(review);
-                await _context.SaveChangesAsync();
-                TempData["Success"] = "Avis supprimé.";
-            }
-            return RedirectToAction(nameof(MyReviews));
         }
     }
 }

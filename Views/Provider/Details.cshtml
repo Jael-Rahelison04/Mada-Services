@@ -10,112 +10,131 @@
         --brand-secondary: #2563eb;
         --brand-gradient: linear-gradient(135deg, #059669 0%, #2563eb 100%);
     }
-
-    .profile-header-card { 
-        background: white; 
-        border-radius: 24px; 
-        box-shadow: 0 10px 30px rgba(15, 23, 42, 0.05); 
+    .profile-header-card {
+        background: white;
+        border-radius: 24px;
+        box-shadow: 0 10px 30px rgba(15, 23, 42, 0.05);
         border: 1px solid rgba(0,0,0,0.03);
     }
-
-    .avatar-box { 
-        width: 120px; 
-        height: 120px; 
-        background: var(--brand-gradient); 
-        color: white; 
-        display: flex; 
-        align-items: center; 
-        justify-content: center; 
-        border-radius: 24px; 
-        overflow: hidden;
-        font-size: 3rem;
-        font-weight: bold;
+    .avatar-box {
+        width: 120px; height: 120px;
+        background: var(--brand-gradient);
+        color: white;
+        display: flex; align-items: center; justify-content: center;
+        border-radius: 24px; overflow: hidden;
+        font-size: 3rem; font-weight: bold;
     }
-
     .avatar-img { width: 100%; height: 100%; object-fit: cover; }
 
-    .status-badge { 
-        padding: 6px 16px; 
-        border-radius: 50px; 
-        font-size: 0.8rem; 
-        font-weight: 700; 
-        text-transform: uppercase;
+    /* ✅ Badge sorti de la carte — plus de chevauchement */
+    .status-badge {
+        padding: 6px 16px; border-radius: 50px;
+        font-size: 0.8rem; font-weight: 700; text-transform: uppercase;
+        display: inline-flex; align-items: center; gap: 6px;
     }
     .status-active { background: #dcfce7; color: #166534; }
     .status-paused { background: #fee2e2; color: #991b1b; }
 
     .availability-badge {
-        flex: 1;
-        text-align: center;
-        padding: 12px 8px;
-        border-radius: 15px;
-        background: #f8fafc;
-        border: 1px solid #e2e8f0;
-        transition: 0.3s;
+        flex: 1; text-align: center;
+        padding: 12px 8px; border-radius: 15px;
+        background: #f8fafc; border: 1px solid #e2e8f0;
+        transition: 0.3s; min-width: 60px;
     }
     .availability-badge.active {
-        background: #ecfdf5;
-        border-color: #10b981;
-        color: #059669;
+        background: #ecfdf5; border-color: #10b981; color: #059669;
     }
+    .availability-badge .day-abbr  { font-weight: 700; font-size: 0.85rem; }
+    .availability-badge .day-state { font-size: 0.7rem; margin-top: 3px; }
 
     .portfolio-img {
-        height: 200px;
-        width: 100%;
-        object-fit: cover;
-        border-radius: 15px;
+        height: 200px; width: 100%;
+        object-fit: cover; border-radius: 15px;
         transition: transform 0.3s ease;
     }
     .portfolio-img:hover { transform: scale(1.03); }
 
-    .btn-primary-mada { 
-        background: var(--brand-gradient); 
-        border: none; 
-        color: white; 
-        border-radius: 14px; 
-        padding: 14px; 
-        font-weight: 700; 
-        transition: 0.3s;
+    .btn-primary-mada {
+        background: var(--brand-gradient); border: none; color: white;
+        border-radius: 14px; padding: 14px; font-weight: 700; transition: 0.3s;
     }
     .btn-primary-mada:hover { opacity: 0.9; transform: translateY(-2px); color: white; }
+
+    .phone-display {
+        font-size: 1.4rem; font-weight: 800;
+        color: #059669; letter-spacing: 1px;
+    }
+
+    /* Contact card collée en haut */
+    .contact-sticky {
+        position: sticky;
+        top: 100px;
+    }
 </style>
 
 <div class="container py-5">
-    <div class="row g-4">
+
+    <div class="mb-3">
+        @if (Model.IsPaused) {
+            <span class="status-badge status-paused">
+                <i class="bi bi-circle-fill small"></i> En pause
+            </span>
+        } else {
+            <span class="status-badge status-active">
+                <i class="bi bi-circle-fill small"></i> Disponible
+            </span>
+        }
+    </div>
+
+    <div class="row g-4 mb-4">
+
         <div class="col-lg-8">
-            <div class="profile-header-card p-4 p-md-5 mb-4 position-relative">
-                <div class="position-absolute top-0 end-0 m-4">
-                    @if (Model.IsPaused) {
-                        <span class="status-badge status-paused"><i class="bi bi-circle-fill me-1 small"></i> En pause</span>
-                    } else {
-                        <span class="status-badge status-active"><i class="bi bi-circle-fill me-1 small"></i> Disponible</span>
-                    }
-                </div>
+            <div class="profile-header-card p-4 p-md-5 h-100">
 
                 <div class="d-flex flex-column flex-md-row align-items-center align-items-md-start gap-4">
                     <div class="avatar-box shadow-sm">
-                        @if (!string.IsNullOrEmpty(Model.ProfileImageUrl)) {
-                            <img src="@Model.ProfileImageUrl" class="avatar-img" alt="@Model.FullName" />
+                        @if (!string.IsNullOrEmpty(Model.ImageUrl)) {
+                            <img src="@Model.ImageUrl" class="avatar-img" alt="@Model.FullName" />
                         } else {
-                            <span>@Model.FullName?[0]</span>
+                            <span>@(Model.FullName?[0])</span>
                         }
                     </div>
+
                     <div class="text-center text-md-start flex-grow-1">
                         <span class="badge bg-light text-primary border mb-2 px-3 py-2 rounded-pill fw-bold">
-                            <i class="bi bi-briefcase me-1"></i> @(Model.JobTitle ?? "Prestataire")
+                            <i class="bi bi-briefcase me-1"></i>
+                            @(Model.JobTitle ?? "Prestataire")
                         </span>
                         <h1 class="fw-800 text-dark mb-1">@Model.FullName</h1>
-                        <p class="text-muted fs-5"><i class="bi bi-geo-alt-fill text-danger me-1"></i> @(Model.City ?? "Non spécifiée")</p>
-                        
+                        <p class="text-muted fs-5">
+                            <i class="bi bi-geo-alt-fill text-danger me-1"></i>
+                            @(Model.City ?? "Non spécifiée")
+                        </p>
+
+                        @if (Model.IsVerified) {
+                            <span class="badge bg-success bg-opacity-10 text-success px-3 py-2 rounded-pill mb-2">
+                                <i class="bi bi-patch-check-fill me-1"></i> Profil vérifié
+                            </span>
+                        }
+
                         <div class="d-flex justify-content-center justify-content-md-start gap-4 mt-3">
                             <div class="text-center">
-                                <span class="d-block fw-bold fs-4">@Model.AverageRating.ToString("F1") <i class="bi bi-star-fill text-warning"></i></span>
-                                <span class="text-muted small">Note moyenne</span>
+                                <span class="d-block fw-bold fs-4">
+                                    @Model.AverageRating.ToString("F1")
+                                    <i class="bi bi-star-fill text-warning"></i>
+                                </span>
+                                <span class="text-muted small">
+                                    (@(Model.Reviews?.Count ?? 0) avis)
+                                </span>
                             </div>
                             <div class="vr"></div>
                             <div class="text-center text-md-start">
                                 <span class="d-block fw-bold fs-4 text-success">
-                                    @(Model.HourlyRate > 0 ? $"{Model.HourlyRate:N0} Ar/h" : "Sur devis")
+                                    @(Model.HourlyRate > 0
+                                        ? Model.HourlyRate.ToString("N0",
+                                            System.Globalization.CultureInfo.InvariantCulture)
+                                            + " Ar/h"
+                                        : "Sur devis")
                                 </span>
                                 <span class="text-muted small">Tarif horaire</span>
                             </div>
@@ -123,41 +142,175 @@
                     </div>
                 </div>
 
-                <hr class="my-4 opacity-5">
+                <hr class="my-4 opacity-10">
                 <h5 class="fw-bold text-dark mb-3">À propos</h5>
-                <p class="text-muted lh-lg">@(Model.Description ?? "Ce prestataire n'a pas encore ajouté de description.")</p>
+                <p class="text-muted lh-lg">
+                    @(Model.Description ?? "Ce prestataire n'a pas encore ajouté de description.")
+                </p>
             </div>
+        </div>
 
-            <div class="profile-header-card p-4 p-md-5 mb-4">
-                <h5 class="fw-bold mb-4"><i class="bi bi-clock me-2 text-primary"></i>Disponibilités</h5>
-                <div class="d-flex flex-wrap gap-2">
-                    @{
-                        var joursSemaine = new[] { "Lun", "Mar", "Mer", "Jeu", "Ven", "Sam", "Dim" };
-                        foreach (var j in joursSemaine)
-                        {
-                            var dispos = Model.Availabilities?.Any(a => a.DayOfWeek == j && a.IsActive) ?? false;
-                            <div class="availability-badge @(dispos ? "active" : "")">
-                                <div class="fw-bold">@j</div>
-                                <div class="small">@(dispos ? "Dispo" : "-")</div>
+        <div class="col-lg-4">
+            <div class="profile-header-card p-4 contact-sticky">
+                <h5 class="fw-bold text-dark mb-4">
+                    Contacter @(Model.FullName?.Split(' ')[0] ?? "ce prestataire")
+                </h5>
+
+                @if (canSeeContact) {
+                    var phoneToDisplay = !string.IsNullOrWhiteSpace(Model.Phone)
+                        ? Model.Phone
+                        : Model.PhoneNumber;
+
+                    <div class="bg-light p-3 rounded-4 mb-4 text-center">
+                        <p class="text-muted small mb-1">Numéro de contact</p>
+                        @if (!string.IsNullOrWhiteSpace(phoneToDisplay)) {
+                            <div class="phone-display">
+                                <i class="bi bi-telephone-fill me-2"></i>@phoneToDisplay
+                            </div>
+                        } else {
+                            <p class="text-muted fst-italic mb-0">Non renseigné</p>
+                        }
+                    </div>
+
+                    <div class="d-grid gap-3">
+                        @if (!string.IsNullOrWhiteSpace(phoneToDisplay) && !Model.IsPaused) {
+                            <a href="tel:@phoneToDisplay" class="btn btn-primary-mada">
+                                <i class="bi bi-telephone-fill me-2"></i> Appeler
+                            </a>
+                            <a href="https://wa.me/@(phoneToDisplay.Replace("+", "").Replace(" ", ""))"
+                               target="_blank"
+                               class="btn btn-success rounded-4 fw-bold py-3">
+                                <i class="bi bi-whatsapp me-2"></i> WhatsApp
+                            </a>
+                        } else if (Model.IsPaused) {
+                            <div class="alert alert-warning rounded-4 text-center py-3 mb-0">
+                                <i class="bi bi-pause-circle me-2"></i>
+                                Ce prestataire est temporairement en pause.
                             </div>
                         }
-                    }
+                        <button class="btn btn-outline-dark rounded-4 fw-bold py-3" disabled>
+                            <i class="bi bi-envelope me-2"></i> Message (bientôt)
+                        </button>
+                    </div>
+
+                } else {
+
+                    <div class="text-center p-3">
+                        <div class="bg-light p-4 rounded-4 mb-3">
+                            <i class="bi bi-lock-fill text-primary" style="font-size: 3rem;"></i>
+                            <p class="text-muted small mt-2 mb-0">
+                                Connectez-vous pour voir le numéro de téléphone et contacter
+                                ce prestataire directement.
+                            </p>
+                        </div>
+                        <a asp-controller="Account"
+                           asp-action="Login"
+                           asp-route-returnUrl="@Context.Request.Path"
+                           class="btn btn-primary-mada w-100">
+                            <i class="bi bi-box-arrow-in-right me-2"></i> Se connecter
+                        </a>
+                        <a asp-controller="Account"
+                           asp-action="Register"
+                           class="btn btn-outline-secondary w-100 rounded-4 mt-2 fw-bold py-2">
+                            Créer un compte
+                        </a>
+                    </div>
+                }
+
+                <div class="mt-4 p-3 bg-light rounded-4">
+                    <p class="small text-muted mb-0">
+                        <i class="bi bi-shield-check text-success me-1"></i>
+                        MadaServices protège vos données personnelles.
+                    </p>
                 </div>
             </div>
+        </div>
+    </div>
 
-            @if (Model.PortfolioItems != null && Model.PortfolioItems.Any())
-            {
-                <div class="profile-header-card p-4 p-md-5 mb-4">
-                    <h5 class="fw-bold mb-4"><i class="bi bi-grid-3x3-gap me-2 text-primary"></i>Portfolio & Réalisations</h5>
+    <div class="row g-4 mb-4">
+        <div class="col-12">
+            <div class="profile-header-card p-4 p-md-5">
+                <h5 class="fw-bold mb-4">
+                    <i class="bi bi-clock me-2 text-primary"></i>Disponibilités
+                </h5>
+
+                @{
+                    var joursMapping = new[]
+                    {
+                        new { Complet = "Lundi",    Abbr = "Lun" },
+                        new { Complet = "Mardi",    Abbr = "Mar" },
+                        new { Complet = "Mercredi", Abbr = "Mer" },
+                        new { Complet = "Jeudi",    Abbr = "Jeu" },
+                        new { Complet = "Vendredi", Abbr = "Ven" },
+                        new { Complet = "Samedi",   Abbr = "Sam" },
+                        new { Complet = "Dimanche", Abbr = "Dim" },
+                    };
+                }
+
+                <div class="d-flex flex-wrap gap-2">
+                    @foreach (var jour in joursMapping)
+                    {
+                        var estDispo = Model.Availabilities?
+                            .Any(a => a.DayOfWeek == jour.Complet && a.IsActive) ?? false;
+
+                        <div class="availability-badge @(estDispo ? "active" : "")">
+                            <div class="day-abbr">@jour.Abbr</div>
+                            <div class="day-state">
+                                @if (estDispo) {
+                                    <i class="bi bi-check-circle-fill text-success"></i>
+                                } else {
+                                    <span class="text-muted">—</span>
+                                }
+                            </div>
+                        </div>
+                    }
+                </div>
+
+                @{
+                    var joursDisponibles = joursMapping
+                        .Where(j => Model.Availabilities?
+                            .Any(a => a.DayOfWeek == j.Complet && a.IsActive) == true)
+                        .Select(j => j.Complet)
+                        .ToList();
+                }
+                @if (joursDisponibles.Any()) {
+                    <p class="text-muted small mt-3 mb-0">
+                        <i class="bi bi-info-circle me-1"></i>
+                        Disponible le : <strong>@string.Join(", ", joursDisponibles)</strong>
+                    </p>
+                } else {
+                    <p class="text-muted small mt-3 mb-0">
+                        <i class="bi bi-info-circle me-1"></i>
+                        Aucune disponibilité renseignée pour le moment.
+                    </p>
+                }
+            </div>
+        </div>
+    </div>
+
+    @if (Model.PortfolioItems != null && Model.PortfolioItems.Any())
+    {
+        <div class="row g-4 mb-4">
+            <div class="col-12">
+                <div class="profile-header-card p-4 p-md-5">
+                    <h5 class="fw-bold mb-4">
+                        <i class="bi bi-grid-3x3-gap me-2 text-primary"></i>
+                        Portfolio & Réalisations
+                        <span class="badge bg-light text-muted border ms-2">
+                            @Model.PortfolioItems.Count / 10
+                        </span>
+                    </h5>
                     <div class="row g-3">
                         @foreach (var item in Model.PortfolioItems)
                         {
                             <div class="col-md-4 col-sm-6">
                                 <div class="card border-0 shadow-sm rounded-4 overflow-hidden">
-                                    <img src="@item.ImageUrl" class="portfolio-img" alt="Travail">
+                                    <img src="@item.ImageUrl" class="portfolio-img" alt="Réalisation">
                                     @if (!string.IsNullOrEmpty(item.Description)) {
                                         <div class="card-body p-2 bg-light">
-                                            <p class="card-text small text-muted text-truncate mb-0">@item.Description</p>
+                                            <p class="card-text small text-muted text-truncate mb-0">
+                                                @item.Description
+                                            </p>
                                         </div>
                                     }
                                 </div>
@@ -165,21 +318,38 @@
                         }
                     </div>
                 </div>
-            }
+            </div>
+        </div>
+    }
 
+    <div class="row g-4">
+        <div class="col-12">
             <div class="profile-header-card p-4 p-md-5">
-                <h5 class="fw-bold mb-4"><i class="bi bi-chat-left-quote me-2 text-primary"></i>Avis clients</h5>
+                <h5 class="fw-bold mb-4">
+                    <i class="bi bi-chat-left-quote me-2 text-primary"></i>
+                    Avis clients
+                    @if (Model.Reviews?.Any() == true) {
+                        <span class="badge bg-warning text-dark ms-2">
+                            @Model.AverageRating.ToString("F1") ★
+                        </span>
+                    }
+                </h5>
+
                 @if (Model.Reviews != null && Model.Reviews.Any()) {
                     @foreach (var r in Model.Reviews.OrderByDescending(x => x.DatePosted)) {
-                        <div class="p-3 mb-3 border-bottom">
+                        <div class="p-3 mb-3 rounded-3 bg-light">
                             <div class="d-flex justify-content-between align-items-center mb-2">
                                 <strong class="text-dark">@r.CustomerName</strong>
                                 <span class="text-warning small">
-                                    @for(int i=1; i<=5; i++) { <i class="bi bi-star@(i <= r.Rating ? "-fill" : "")"></i> }
+                                    @for (int i = 1; i <= 5; i++) {
+                                        <i class="bi bi-star@(i <= r.Rating ? "-fill" : "")"></i>
+                                    }
                                 </span>
                             </div>
-                            <p class="text-muted small mb-1 italic">"@r.Comment"</p>
-                            <span class="text-muted" style="font-size: 0.7rem;">@r.DatePosted.ToString("dd/MM/yyyy")</span>
+                            <p class="text-muted small mb-1 fst-italic">"@r.Comment"</p>
+                            <span class="text-muted" style="font-size: 0.7rem;">
+                                @r.DatePosted.ToString("dd/MM/yyyy")
+                            </span>
                         </div>
                     }
                 } else {
@@ -190,45 +360,6 @@
                 }
             </div>
         </div>
-
-        <div class="col-lg-4">
-            <div class="profile-header-card p-4 sticky-top" style="top: 100px;">
-                <h5 class="fw-bold text-dark mb-4">Contacter @Model.FullName.Split(' ')[0]</h5>
-                
-                @if (canSeeContact) {
-                    <div class="bg-light p-3 rounded-4 mb-4 text-center">
-                        <p class="text-muted small mb-1">Numéro de contact</p>
-                        <h4 class="fw-800 text-primary mb-0">@(Model.PhoneNumber ?? "Non fourni")</h4>
-                    </div>
-
-                    <div class="d-grid gap-3">
-                        @if (!string.IsNullOrEmpty(Model.PhoneNumber) && !Model.IsPaused) {
-                            <a href="tel:@Model.PhoneNumber" class="btn btn-primary-mada">
-                                <i class="bi bi-telephone-fill me-2"></i> Appeler
-                            </a>
-                        }
-                        <button class="btn btn-outline-dark rounded-4 fw-bold py-3">
-                            <i class="bi bi-envelope me-2"></i> Envoyer un message
-                        </button>
-                    </div>
-                } else {
-                    <div class="text-center p-3">
-                        <div class="bg-soft-primary p-3 rounded-4 mb-3">
-                            <i class="bi bi-lock-fill text-primary fs-1"></i>
-                        </div>
-                        <p class="text-muted small mb-4">Vous devez être connecté pour voir le numéro de téléphone.</p>
-                        <a asp-controller="Account" asp-action="Login" asp-route-returnUrl="@Context.Request.Path" class="btn btn-primary-mada w-100">
-                            Se connecter
-                        </a>
-                    </div>
-                }
-                
-                <div class="mt-4 p-3 bg-light rounded-4">
-                    <p class="small text-muted mb-0">
-                        <i class="bi bi-shield-check text-success me-1"></i> MadaServices protège vos données.
-                    </p>
-                </div>
-            </div>
-        </div>
     </div>
+
 </div>
