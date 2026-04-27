@@ -181,10 +181,7 @@
                                     </div>
                                     
                                     <div class="stars-display mb-4">
-                                        @for (int i = 1; i <= 5; i++)
-                                        {
-                                            <i class="bi @(i <= review.Rating ? "bi-star-fill" : "bi-star text-light")"></i>
-                                        }
+                                        @await Html.PartialAsync("_StarRating", (decimal)review.Rating)
                                     </div>
 
                                     <div class="provider-info-box d-flex align-items-center gap-3">

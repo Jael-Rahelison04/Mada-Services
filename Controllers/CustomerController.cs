@@ -128,26 +128,27 @@ namespace MadaServices.Controllers
         // ─────────────────────────────────────────────
         [HttpPost]
         [ValidateAntiForgeryToken]
-        public async Task<IActionResult> CreateReview(int providerId, int rating, string? comment)
+        public async Task<IActionResult> CreateReview(int providerId, decimal rating, string? comment)
         {
             var user = await _userManager.GetUserAsync(User);
             if (user == null) return Challenge();
 
-            // Validation de la note
-            if (rating < 1 || rating > 5)
+            // ✅ Validation : 0.5 à 5.0 par pas de 0.5
+            if (rating < 0.5m || rating > 5.0m)
             {
-                TempData["Error"] = "La note doit être entre 1 et 5.";
+                TempData["Error"] = "La note doit être entre 0.5 et 5.";
                 return RedirectToAction(nameof(Index));
             }
 
-            // Vérifier qu'un client ne note pas lui-même
+            // Arrondir au 0.5 le plus proche pour éviter 3.3 ou 4.7
+            rating = Math.Round(rating * 2) / 2;
+
             if (user.Id == providerId)
             {
                 TempData["Error"] = "Vous ne pouvez pas noter votre propre profil.";
                 return RedirectToAction(nameof(Index));
             }
 
-            // ✅ CORRECTION C1 : Vérification doublon avec int == int
             bool alreadyReviewed = await _context.Reviews
                 .AnyAsync(r => r.ClientId == user.Id && r.ProviderId == providerId);
 
@@ -159,12 +160,12 @@ namespace MadaServices.Controllers
 
             var review = new Review
             {
-                ProviderId = providerId,
-                ClientId = user.Id,           // ✅ int au lieu de string
+                ProviderId   = providerId,
+                ClientId     = user.Id,
                 CustomerName = user.FullName ?? user.UserName ?? "Client",
-                Rating = rating,
-                Comment = comment ?? "",
-                DatePosted = DateTime.Now
+                Rating       = rating,
+                Comment      = comment ?? "",
+                DatePosted   = DateTime.Now
             };
 
             _context.Reviews.Add(review);

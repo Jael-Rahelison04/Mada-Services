@@ -2,7 +2,7 @@
 @{
     ViewData["Title"] = "Ma Réputation";
     // Calcul de la moyenne
-    double average = Model.Reviews != null && Model.Reviews.Any() 
+    decimal average = Model.Reviews != null && Model.Reviews.Any() 
                      ? Model.Reviews.Average(r => r.Rating) 
                      : 0;
 }

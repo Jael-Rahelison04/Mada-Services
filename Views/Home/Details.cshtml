@@ -4,7 +4,7 @@
     // On utilise soit ViewBag soit l'authentification directe
     bool canSeeContact = User.Identity?.IsAuthenticated ?? false;
     
-    double averageRating = (Model?.Reviews != null && Model.Reviews.Any()) 
+    decimal averageRating = (Model?.Reviews != null && Model.Reviews.Any()) 
         ? Model.Reviews.Average(r => r.Rating) 
         : 0;
 }
@@ -292,7 +292,7 @@
                                             <div class="d-flex justify-content-between mb-3">
                                                 <div class="fw-bold text-dark">@review.CustomerName</div>
                                                 <div class="text-warning small">
-                                                    @for(int i=0; i < review.Rating; i++){ <i class="bi bi-star-fill"></i> }
+                                                    @await Html.PartialAsync("_StarRating", (decimal)review.Rating)
                                                 </div>
                                             </div>
                                             <p class="small text-muted mb-0 fst-italic">"@review.Comment"</p>

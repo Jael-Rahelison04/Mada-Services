@@ -1,4 +1,4 @@
-// Models/Review.cs (VERSION CORRIGÉE)
+// Models/Review.cs
 using System;
 using System.ComponentModel.DataAnnotations;
 using System.ComponentModel.DataAnnotations.Schema;
@@ -10,20 +10,20 @@ namespace MadaServices.Models
         [Key]
         public int Id { get; set; }
 
-        [Range(1, 5, ErrorMessage = "La note doit être entre 1 et 5.")]
-        public int Rating { get; set; }
+        // ✅ CHANGEMENT : int → decimal pour accepter 3.5, 4.5, etc.
+        [Range(0.5, 5.0, ErrorMessage = "La note doit être entre 0.5 et 5.")]
+        [Column(TypeName = "decimal(3,1)")]  // ex: 3.5, 4.0, 5.0
+        public decimal Rating { get; set; }
 
         [Required]
         public string Comment { get; set; } = string.Empty;
 
         public string CustomerName { get; set; } = string.Empty;
 
-        // Propriété calculée pour compatibilité avec le Dashboard
         public string AuthorName => CustomerName;
 
         public DateTime DatePosted { get; set; } = DateTime.Now;
 
-        // ✅ CORRECTION C1 : ClientId est maintenant un int (cohérent avec User.Id)
         [Required]
         public int ClientId { get; set; }
 

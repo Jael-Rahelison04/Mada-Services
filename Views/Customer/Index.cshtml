@@ -123,36 +123,244 @@
 </div>
 
 <div class="modal fade" id="reviewModal" tabindex="-1">
-    <div class="modal-dialog modal-sm modal-dialog-centered">
-        <div class="modal-content border-0 shadow-lg" style="border-radius:20px;">
+    <div class="modal-dialog modal-lg modal-dialog-centered">
+        <div class="modal-content border-0 shadow-lg" style="border-radius: 24px;">
+            <div class="modal-header border-0 px-4 pt-4 pb-0">
+                <h5 class="fw-800 mb-0">
+                    <i class="bi bi-star-fill text-warning me-2"></i>Noter un expert
+                </h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+
             <div class="modal-body p-4">
-                <h6 class="fw-800 mb-3 text-center">Noter un expert</h6>
                 <form asp-action="CreateReview" method="post">
-                    <div class="mb-2">
-                        <label class="small fw-700 text-muted">PRESTATAIRE</label>
-                        <select name="ProviderId" class="form-select form-custom" required>
-                            @if (ViewBag.ProvidersList != null) {
-                                foreach (var p in ViewBag.ProvidersList) {
-                                    <option value="@p.Id">@p.FullName</option>
-                                }
-                            }
-                        </select>
+                    @Html.AntiForgeryToken()
+
+                    <div class="row g-4">
+
+                        <div class="col-md-5">
+
+                            <div class="mb-4">
+                                <label class="small fw-700 text-muted d-block mb-2">
+                                    PRESTATAIRE
+                                </label>
+                                <select name="providerId"
+                                        class="form-select form-custom"
+                                        required>
+                                    @if (ViewBag.ProvidersList != null) {
+                                        foreach (var p in ViewBag.ProvidersList) {
+                                            <option value="@p.Id">@p.FullName</option>
+                                        }
+                                    }
+                                </select>
+                            </div>
+
+                            <div class="mb-3">
+                                <label class="small fw-700 text-muted d-block mb-3">NOTE</label>
+
+                                <input type="hidden" name="rating" id="ratingValue" value="5">
+
+                                <div class="star-rating-widget" id="starWidget">
+                                    @for (int s = 1; s <= 5; s++) {
+                                        <span class="star-item" data-value="@s">
+                                            <i class="bi bi-star"></i>
+                                        </span>
+                                    }
+                                </div>
+
+                                <div class="d-flex align-items-center gap-2 mt-2">
+                                    <span id="ratingDisplay" class="fw-800 fs-4 text-warning">5.0</span>
+                                    <span class="text-muted small">/ 5 étoiles</span>
+                                    <span id="ratingLabel"
+                                        class="badge rounded-pill ms-1"
+                                        style="background:#d1fae5; color:#065f46;">
+                                        Excellent
+                                    </span>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="col-md-7">
+                            <label class="small fw-700 text-muted d-block mb-2">
+                                VOTRE AVIS
+                            </label>
+                            <textarea name="comment"
+                                      class="form-control form-custom"
+                                      placeholder="Décrivez votre expérience : ponctualité, qualité du travail, professionnalisme..."
+                                      rows="7"
+                                      required
+                                      minlength="10"
+                                      maxlength="500"></textarea>
+                            <div class="d-flex justify-content-between mt-1">
+                                <small class="text-muted">Minimum 10 caractères</small>
+                                <small class="text-muted" id="charCount">0 / 2000</small>
+                            </div>
+                        </div>
+
+                        <div class="col-12">
+                            <button type="submit" class="btn-action w-100 py-3 rounded-3">
+                                <i class="bi bi-send-fill me-2"></i>Publier mon avis
+                            </button>
+                        </div>
+
                     </div>
-                    <div class="mb-2 text-center">
-                        <label class="small fw-700 text-muted d-block">NOTE</label>
-                        <input type="range" name="Rating" min="1" max="5" step="1" class="form-range" id="ratingRange" value="5">
-                        <div id="ratingVal" class="fw-800 text-warning">5 / 5</div>
-                    </div>
-                    <div class="mb-3">
-                        <label class="small fw-700 text-muted">VOTRE AVIS</label>
-                        <textarea name="Comment" class="form-control form-custom" placeholder="Comment s'est passé le travail ?" rows="3" required></textarea>
-                    </div>
-                    <button type="submit" class="btn-action w-100 py-2">Publier l'avis</button>
                 </form>
             </div>
         </div>
     </div>
 </div>
+
+<style>
+    /* ── Widget étoiles ── */
+    .star-rating-widget {
+        display: flex;
+        gap: 6px;
+        font-size: 2rem;
+        user-select: none;
+        cursor: pointer;
+    }
+
+    .star-item {
+        position: relative;
+        color: #e2e8f0;          /* gris par défaut */
+        transition: color 0.1s ease;
+        line-height: 1;
+    }
+
+    .star-item.active  { color: #f59e0b; }   /* orange sélectionné */
+    .star-item.hovered { color: #fbbf24; }   /* jaune clair au survol */
+
+    /* Demi-étoile : on swap juste l'icône en JS */
+    .star-item i { pointer-events: none; }   /* le clic va au span, pas à l'icône */
+</style>
+
+<script>
+(function () {
+    const widget  = document.getElementById('starWidget');
+    const input   = document.getElementById('ratingValue');
+    const display = document.getElementById('ratingDisplay');
+    const label   = document.getElementById('ratingLabel');
+
+    if (!widget) return;
+
+    const labels = {
+        0.5: { text: 'Très mauvais', bg: '#fee2e2', color: '#991b1b' },
+        1.0: { text: 'Mauvais',      bg: '#fee2e2', color: '#991b1b' },
+        1.5: { text: 'Insuffisant',  bg: '#ffedd5', color: '#9a3412' },
+        2.0: { text: 'Médiocre',     bg: '#ffedd5', color: '#9a3412' },
+        2.5: { text: 'Passable',     bg: '#fef9c3', color: '#854d0e' },
+        3.0: { text: 'Correct',      bg: '#fef9c3', color: '#854d0e' },
+        3.5: { text: 'Bien',         bg: '#dcfce7', color: '#166534' },
+        4.0: { text: 'Très bien',    bg: '#dcfce7', color: '#166534' },
+        4.5: { text: 'Remarquable',  bg: '#d1fae5', color: '#065f46' },
+        5.0: { text: 'Excellent',    bg: '#d1fae5', color: '#065f46' },
+    };
+
+    const stars = Array.from(widget.querySelectorAll('.star-item'));
+
+    function getValueFromEvent(e) {
+        const star  = e.currentTarget;
+        const rect  = star.getBoundingClientRect();
+        const posX  = e.clientX - rect.left;
+        const isLeftHalf = posX < rect.width / 2;
+        const fullValue  = parseFloat(star.dataset.value);
+        return isLeftHalf ? fullValue - 0.5 : fullValue;
+    }
+
+    function setRating(value) {
+        value = Math.round(value * 2) / 2;
+        if (value < 0.5) value = 0.5;
+
+        input.value = value;
+
+        display.textContent = value.toFixed(1);
+
+        const key  = value.toFixed(1);
+        const info = labels[parseFloat(key)]
+            ?? { text: '', bg: '#fef9c3', color: '#854d0e' };
+        label.textContent      = info.text;
+        label.style.background = info.bg;
+        label.style.color      = info.color;
+
+        renderStars(value);
+    }
+
+    function renderStars(value) {
+        stars.forEach(star => {
+            const sv = parseFloat(star.dataset.value);  // 1, 2, 3, 4, 5
+            star.classList.remove('active', 'hovered');
+
+            if (value >= sv) {
+                star.querySelector('i').className = 'bi bi-star-fill';
+                star.classList.add('active');
+            } else if (value >= sv - 0.5) {
+                star.querySelector('i').className = 'bi bi-star-half';
+                star.classList.add('active');
+            } else {
+                star.querySelector('i').className = 'bi bi-star';
+            }
+        });
+    }
+
+    function highlightStars(value) {
+        stars.forEach(star => {
+            const sv = parseFloat(star.dataset.value);
+            star.classList.remove('hovered');
+
+            if (value >= sv) {
+                star.querySelector('i').className = 'bi bi-star-fill';
+                star.classList.add('hovered');
+            } else if (value >= sv - 0.5) {
+                star.querySelector('i').className = 'bi bi-star-half';
+                star.classList.add('hovered');
+            } else {
+                star.querySelector('i').className = 'bi bi-star';
+            }
+        });
+    }
+
+    stars.forEach(star => {
+
+        star.addEventListener('click', (e) => {
+            const val = getValueFromEvent(e);
+            setRating(val);
+        });
+
+        star.addEventListener('mousemove', (e) => {
+            const val = getValueFromEvent(e);
+            highlightStars(val);
+
+            display.textContent = val.toFixed(1);
+            const info = labels[val] ?? { text: '', bg: '#fef9c3', color: '#854d0e' };
+            label.textContent      = info.text;
+            label.style.background = info.bg;
+            label.style.color      = info.color;
+        });
+    });
+
+    widget.addEventListener('mouseleave', () => {
+        const currentValue = parseFloat(input.value) || 5;
+        renderStars(currentValue);
+        display.textContent    = currentValue.toFixed(1);
+        const info = labels[currentValue] ?? { text: '', bg: '#d1fae5', color: '#065f46' };
+        label.textContent      = info.text;
+        label.style.background = info.bg;
+        label.style.color      = info.color;
+    });
+
+    setRating(5);
+})();
+
+const textarea  = document.querySelector('textarea[name="comment"]');
+const charCount = document.getElementById('charCount');
+if (textarea && charCount) {
+    textarea.addEventListener('input', () => {
+        const len = textarea.value.length;
+        charCount.textContent = len + ' / 2000';
+        charCount.style.color = len > 1800 ? '#ef4444' : '';
+    });
+}
+</script>
 
 <div class="modal fade" id="bookingModal" tabindex="-1">
     <div class="modal-dialog modal-sm modal-dialog-centered">
