@@ -197,6 +197,27 @@ namespace MadaServices.Controllers
             return RedirectToAction(nameof(Dashboard));
         }
 
+        [Authorize(Roles = "Provider")]
+        [HttpGet]
+        public async Task<IActionResult> UpdateProfile()
+        {
+            var user = await _userManager.GetUserAsync(User);
+            if (user == null) return Unauthorized();
+
+            var provider = await _context.Providers
+                .Include(p => p.Reviews)
+                .Include(p => p.PortfolioItems)
+                .Include(p => p.Bookings)
+                .Include(p => p.Availabilities)
+                .Include(p => p.Category)
+                .FirstOrDefaultAsync(p => p.Id == user.Id);
+
+            if (provider == null) return NotFound();
+
+            // IMPORTANT : même View que ton dashboard
+            return View("~/Views/Dashboard/Index.cshtml", provider);
+        }
+
         // ─────────────────────────────────────────────
         // UPLOAD AVATAR
         // ─────────────────────────────────────────────
@@ -247,7 +268,8 @@ namespace MadaServices.Controllers
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> UploadPortfolio(
             IFormFile? portfolioFile,
-            string? description)
+            string? description,
+            string? projectUrl)          // ✅ NOUVEAU paramètre
         {
             var user = await _userManager.GetUserAsync(User);
             if (user == null) return Unauthorized();
@@ -258,17 +280,15 @@ namespace MadaServices.Controllers
                 return RedirectToAction(nameof(Dashboard));
             }
 
-            // ✅ CORRECTION P12 : Vérifier la limite de 10 photos AVANT l'upload
             int currentCount = await _context.PortfolioItems
                 .CountAsync(pi => pi.ProviderId == user.Id);
 
             if (currentCount >= MaxPortfolioItems)
             {
-                TempData["Error"] = $"Limite atteinte : vous ne pouvez pas ajouter plus de {MaxPortfolioItems} photos dans votre portfolio.";
+                TempData["Error"] = $"Limite atteinte : maximum {MaxPortfolioItems} photos.";
                 return RedirectToAction(nameof(Dashboard));
             }
 
-            // Vérification du type de fichier image
             var allowedExtensions = new[] { ".jpg", ".jpeg", ".png", ".webp", ".gif" };
             var ext = Path.GetExtension(portfolioFile.FileName).ToLower();
             if (!allowedExtensions.Contains(ext))
@@ -277,25 +297,68 @@ namespace MadaServices.Controllers
                 return RedirectToAction(nameof(Dashboard));
             }
 
+            // ✅ Validation basique de l'URL si fournie
+            string? cleanUrl = null;
+            if (!string.IsNullOrWhiteSpace(projectUrl))
+            {
+                cleanUrl = projectUrl.Trim();
+                if (!cleanUrl.StartsWith("http://") && !cleanUrl.StartsWith("https://"))
+                    cleanUrl = "https://" + cleanUrl;   // sécurité minimale
+            }
+
             var fileName = await SaveFile(portfolioFile, "portfolio");
 
             var portfolioItem = new PortfolioItem
             {
-                ImageUrl = "/uploads/portfolio/" + fileName,
-                Description = description ?? "Sans description",
+                ImageUrl   = "/uploads/portfolio/" + fileName,
+                Description = description ?? "Sans titre",
+                ProjectUrl = cleanUrl,                   // ✅ NOUVEAU
                 ProviderId = user.Id
             };
 
             _context.PortfolioItems.Add(portfolioItem);
             await _context.SaveChangesAsync();
 
-            // Informer combien il reste de places
             int remaining = MaxPortfolioItems - (currentCount + 1);
             TempData["Success"] = remaining > 0
-                ? $"Photo ajoutée ! Il vous reste {remaining} emplacement(s)."
-                : "Photo ajoutée ! Vous avez atteint la limite de 10 photos.";
+                ? $"Projet ajouté ! Il vous reste {remaining} emplacement(s)."
+                : "Projet ajouté ! Vous avez atteint la limite de 10 projets.";
 
             return RedirectToAction(nameof(Dashboard));
+        }
+
+        // ─────────────────────────────────────────────
+        // ✅ MISE À JOUR DU LIEN PORTFOLIO EXTERNE
+        // ─────────────────────────────────────────────
+        [HttpPost]
+        [Authorize(Roles = "Provider")]
+        [ValidateAntiForgeryToken]
+        public async Task<IActionResult> UpdatePortfolioUrl(string portfolioUrl)
+        {
+            // 1. Récupérer l'utilisateur actuel
+            var user = await _userManager.GetUserAsync(User);
+            if (user == null) return Unauthorized();
+
+            // 2. Trouver le prestataire dans la base de données
+            var provider = await _context.Providers.FindAsync(user.Id);
+            if (provider == null) return NotFound();
+
+            // 3. Mettre à jour l'URL (assurez-vous que la colonne 'PortfolioUrl' existe dans votre table Provider)
+            provider.PortfolioUrl = portfolioUrl;
+
+            // 4. Sauvegarder les changements
+            try
+            {
+                await _context.SaveChangesAsync();
+                TempData["Success"] = "Le lien de votre portfolio a été mis à jour avec succès.";
+            }
+            catch (Exception ex)
+            {
+                TempData["Error"] = "Une erreur est survenue lors de la mise à jour.";
+            }
+
+            // 5. Rediriger vers le dashboard (onglet portfolio)
+            return RedirectToAction("Dashboard", new { tab = "portfolio" });
         }
 
         // ─────────────────────────────────────────────
@@ -446,74 +509,99 @@ namespace MadaServices.Controllers
         }
 
         // ─────────────────────────────────────────────
-        // ✅ CORRECTION P10 : UPLOAD DOCUMENT DE VÉRIFICATION (NOUVEAU)
+        // ✅ CORRECTION : UPLOAD MULTIPLE DE DOCUMENTS
         // ─────────────────────────────────────────────
         [HttpPost]
         [Authorize(Roles = "Provider")]
         [ValidateAntiForgeryToken]
-        public async Task<IActionResult> UploadVerificationDocument(IFormFile? documentFile)
+        public async Task<IActionResult> UploadVerificationDocument(
+            IFormFile? cinFile,           // Obligatoire
+            IFormFile? cvFile,            // Obligatoire
+            IFormFile? residenceFile,     // Obligatoire
+            IFormFile? diplomaFile)       // Facultatif
         {
             var user = await _userManager.GetUserAsync(User);
             if (user == null) return Unauthorized();
 
-            if (documentFile == null || documentFile.Length == 0)
-            {
-                TempData["Error"] = "Aucun fichier sélectionné.";
-                return RedirectToAction(nameof(Dashboard));
-            }
-
-            // Formats acceptés : images et PDF
-            var allowedExtensions = new[] { ".jpg", ".jpeg", ".png", ".pdf" };
-            var ext = Path.GetExtension(documentFile.FileName).ToLower();
-            if (!allowedExtensions.Contains(ext))
-            {
-                TempData["Error"] = "Format non supporté. Utilisez jpg, png ou pdf.";
-                return RedirectToAction(nameof(Dashboard));
-            }
-
-            // Taille max : 5 Mo
-            if (documentFile.Length > 5 * 1024 * 1024)
-            {
-                TempData["Error"] = "Le fichier est trop volumineux (max 5 Mo).";
-                return RedirectToAction(nameof(Dashboard));
-            }
-
             var provider = await _context.Providers.FindAsync(user.Id);
             if (provider == null) return NotFound();
 
-            // Un prestataire déjà vérifié n'a pas besoin de re-soumettre
             if (provider.IsVerified)
             {
                 TempData["Error"] = "Votre profil est déjà vérifié.";
                 return RedirectToAction(nameof(Dashboard));
             }
 
-            // Sauvegarder dans un dossier sécurisé (pas dans wwwroot !)
-            // Les documents sensibles ne doivent pas être accessibles publiquement
-            var uploadsFolder = Path.Combine(
-                Directory.GetCurrentDirectory(),
-                "PrivateUploads",
-                "verification");
+            // ── Validation des fichiers obligatoires ──────────────────────────
+            var errors = new List<string>();
 
-            if (!Directory.Exists(uploadsFolder))
-                Directory.CreateDirectory(uploadsFolder);
+            if (cinFile == null || cinFile.Length == 0)
+                errors.Add("La CIN est obligatoire.");
+            if (cvFile == null || cvFile.Length == 0)
+                errors.Add("Le CV est obligatoire.");
+            if (residenceFile == null || residenceFile.Length == 0)
+                errors.Add("Le certificat de résidence est obligatoire.");
 
-            var fileName = $"doc_{user.Id}_{Guid.NewGuid()}{ext}";
-            var filePath = Path.Combine(uploadsFolder, fileName);
-
-            using (var stream = new FileStream(filePath, FileMode.Create))
+            if (errors.Any())
             {
-                await documentFile.CopyToAsync(stream);
+                TempData["Error"] = string.Join(" | ", errors);
+                return RedirectToAction(nameof(Dashboard));
             }
 
-            // Mettre à jour le statut du prestataire
-            provider.HasSubmittedDocs = true;
-            provider.VerificationStatus = "Pending";   // En attente de validation admin
-            provider.VerificationDocumentPath = fileName; // Stocker le nom (pas le chemin complet)
+            var allowedExtensions = new[] { ".jpg", ".jpeg", ".png", ".pdf" };
+            const long maxSize = 5 * 1024 * 1024; // 5 Mo
+
+            // ── Helper local : valider + sauvegarder un fichier ───────────────
+            async Task<(string? path, string? error)> SaveDoc(IFormFile? file, string prefix)
+            {
+                if (file == null || file.Length == 0) return (null, null); // facultatif absent = OK
+
+                var ext = Path.GetExtension(file.FileName).ToLower();
+                if (!allowedExtensions.Contains(ext))
+                    return (null, $"Format invalide pour {prefix} (JPG, PNG ou PDF uniquement).");
+                if (file.Length > maxSize)
+                    return (null, $"{prefix} dépasse 5 Mo.");
+
+                var folder = Path.Combine(Directory.GetCurrentDirectory(), "PrivateUploads", "verification");
+                Directory.CreateDirectory(folder);
+
+                var fileName = $"{prefix}_{user.Id}_{Guid.NewGuid()}{ext}";
+                var fullPath = Path.Combine(folder, fileName);
+
+                using var stream = new FileStream(fullPath, FileMode.Create);
+                await file.CopyToAsync(stream);
+
+                return (fileName, null);
+            }
+
+            // ── Sauvegarde des 4 fichiers ─────────────────────────────────────
+            var (cinPath,       cinErr)       = await SaveDoc(cinFile,       "cin");
+            var (cvPath,        cvErr)        = await SaveDoc(cvFile,        "cv");
+            var (residencePath, residenceErr) = await SaveDoc(residenceFile, "residence");
+            var (diplomaPath,   diplomaErr)   = await SaveDoc(diplomaFile,   "diplome");
+
+            // Agréger les erreurs de format/taille
+            var saveErrors = new[] { cinErr, cvErr, residenceErr, diplomaErr }
+                .Where(e => e != null).ToList();
+
+            if (saveErrors.Any())
+            {
+                TempData["Error"] = string.Join(" | ", saveErrors);
+                return RedirectToAction(nameof(Dashboard));
+            }
+
+            // ── Persistance en base ───────────────────────────────────────────
+            provider.CinDocumentPath    = cinPath;
+            provider.CvDocumentPath     = cvPath;
+            provider.ResidenceCertPath  = residencePath;
+            provider.DiplomaDocumentPath = diplomaPath;  // null si non fourni
+
+            provider.HasSubmittedDocs    = true;
+            provider.VerificationStatus  = "Pending";
 
             await _context.SaveChangesAsync();
 
-            TempData["Success"] = "Document envoyé ! L'administrateur examinera votre dossier sous 48h.";
+            TempData["Success"] = "Dossier envoyé ! L'administrateur examinera votre dossier sous 48h.";
             return RedirectToAction(nameof(Dashboard));
         }
 

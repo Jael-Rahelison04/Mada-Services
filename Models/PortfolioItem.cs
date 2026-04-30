@@ -11,5 +11,10 @@ namespace MadaServices.Models
         // Clé étrangère vers le Provider
         public int ProviderId { get; set; }
         public virtual Provider? Provider { get; set; }
+
+            // ✅ NOUVEAU — lien spécifique à ce projet
+        public string? ProjectUrl { get; set; }
     }
+
+
 }

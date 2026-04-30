@@ -3,6 +3,328 @@
     ViewData["Title"] = "Tableau de Bord Pro - MadaServices";
 }
 
+<style>
+    :root { 
+        --mada-primary: #059669; 
+        --mada-dark: #064e3b; 
+        --mada-bg: #f8fafc;
+        --mada-primary-soft: #ecfdf5;
+    }
+    
+    body { background-color: var(--mada-bg); font-family: 'Outfit', sans-serif; color: #1e293b; }
+    .fw-800 { font-weight: 800; }
+    .fw-600 { font-weight: 600; }
+    .bg-gradient-pro { background: linear-gradient(135deg, var(--mada-primary) 0%, var(--mada-dark) 100%); }
+    
+    .avatar-wrapper { width: 100px; height: 100px; background: #eee; }
+    .avatar-overlay {
+        position: absolute; top: 0; left: 0; width: 100%; height: 100%;
+        background: rgba(0,0,0,0.4); display: flex; align-items: center;
+        justify-content: center; opacity: 0; transition: 0.3s;
+    }
+    .avatar-container:hover .avatar-overlay { opacity: 1; }
+    
+    .sidebar-nav .nav-link { 
+        color: #475569; border-radius: 12px; font-weight: 600; text-align: left;
+        margin-bottom: 5px; padding: 12px 18px;
+    }
+    .sidebar-nav .nav-link:hover { background: var(--mada-primary-soft); color: var(--mada-primary); }
+    .sidebar-nav .nav-link.active { 
+        background-color: var(--mada-primary) !important; color: white !important; 
+        box-shadow: 0 4px 12px rgba(5,150,105,0.25);
+    }
+    
+    .label-pro { font-weight: 700; font-size: 0.75rem; color: #64748b; margin-bottom: 0.4rem; display: block; text-transform: uppercase; }
+    .input-pro { border-radius: 12px; border: 1.5px solid #e2e8f0; padding: 0.75rem; }
+    .input-pro:focus { border-color: var(--mada-primary); box-shadow: 0 0 0 3px rgba(5,150,105,0.1); outline: none; }
+    
+    .btn-primary-mada { background-color: var(--mada-primary); color: white; font-weight: 600; border: none; }
+    .btn-primary-mada:hover { background-color: var(--mada-dark); transform: translateY(-2px); color: white; }
+    
+    .bg-warning-soft { background-color: #fffbeb; color: #d97706; }
+    .bg-success-soft { background-color: #f0fdf4; color: #16a34a; }
+    .bg-primary-soft { background-color: #eff6ff; color: #2563eb; }
+    
+    .border-dashed { border: 2px dashed #cbd5e1 !important; }
+    .cursor-pointer { cursor: pointer; }
+    .portfolio-card:hover { transform: translateY(-5px); transition: 0.3s; }
+    
+    .animate-pulse { animation: pulse 2s infinite; }
+    @@keyframes pulse { 0% { opacity: 1; } 50% { opacity: 0.6; } 100% { opacity: 1; } }
+    .btn-white {
+        background: rgba(255, 255, 255, 0.9);
+        color: #1e3c72;
+        border: none;
+        transition: all 0.3s ease;
+    }
+    .btn-white:hover:not(:disabled) {
+        background: #ffffff;
+        transform: translateY(-2px);
+    }
+    .btn-op.active {
+        opacity: 1 !important;
+        background: #fff !important;
+        box-shadow: 0 0 12px rgba(255,255,255,0.4);
+        transform: scale(1.05);
+    }
+    .bg-soft-success {
+        background-color: rgba(25, 135, 84, 0.1);
+    }
+
+    .border-dashed {
+        border: 2px dashed #dee2e6 !important;
+        transition: all 0.3s ease;
+    }
+    .upload-zone:hover {
+        border-color: #1e3c72 !important;
+        background-color: #f8f9fa !important;
+    }
+    .file-badge {
+        background: #e9ecef;
+        border-radius: 8px;
+        padding: 5px 12px;
+        font-size: 0.8rem;
+        display: flex;
+        align-items: center;
+        border: 1px solid #dee2e6;
+    }
+    /* ═══════════════════════════════════════
+    PORTFOLIO — FORMULAIRE D'AJOUT
+    ════════════════════════════════════════ */
+    .portfolio-add-card {
+        border: 1.5px solid #e2e8f0;
+        border-radius: 20px;
+        overflow: hidden;
+        background: white;
+    }
+
+    .portfolio-add-header {
+        background: linear-gradient(135deg, #059669, #064e3b);
+        color: white;
+        padding: 14px 20px;
+        font-weight: 700;
+        font-size: 0.9rem;
+        letter-spacing: 0.3px;
+    }
+
+    .portfolio-add-body { padding: 24px; }
+
+    .portfolio-drop-zone {
+        height: 180px;
+        border: 2px dashed #cbd5e1;
+        border-radius: 14px;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        justify-content: center;
+        cursor: pointer;
+        transition: all 0.25s ease;
+        background: #f8fafc;
+        overflow: hidden;
+    }
+
+    .portfolio-drop-zone:hover {
+        border-color: #059669;
+        background: #f0fdf4;
+    }
+
+    .portfolio-drop-icon {
+        font-size: 2.2rem;
+        color: #94a3b8;
+        display: block;
+        margin-bottom: 8px;
+    }
+
+    .portfolio-drop-text {
+        font-size: 0.8rem;
+        color: #94a3b8;
+        text-align: center;
+        line-height: 1.5;
+    }
+
+    .portfolio-url-prefix {
+        background: #f8fafc;
+        border-color: #e2e8f0;
+        color: #64748b;
+        border-radius: 12px 0 0 12px;
+    }
+
+    /* ═══════════════════════════════════════
+    PORTFOLIO — CARDS DE PROJETS
+    ════════════════════════════════════════ */
+    .portfolio-item-card {
+        border: 1.5px solid #f1f5f9;
+        border-radius: 18px;
+        overflow: hidden;
+        background: white;
+        transition: all 0.3s ease;
+        box-shadow: 0 2px 8px rgba(0,0,0,0.04);
+    }
+
+    .portfolio-item-card:hover {
+        transform: translateY(-6px);
+        box-shadow: 0 12px 28px rgba(0,0,0,0.1);
+        border-color: #e2e8f0;
+    }
+
+    .portfolio-item-img-wrapper {
+        position: relative;
+        height: 190px;
+        overflow: hidden;
+    }
+
+    .portfolio-item-img-wrapper img {
+        width: 100%;
+        height: 100%;
+        object-fit: cover;
+        transition: transform 0.4s ease;
+        display: block;
+    }
+
+    .portfolio-item-card:hover .portfolio-item-img-wrapper img {
+        transform: scale(1.06);
+    }
+
+    .portfolio-item-overlay {
+        position: absolute;
+        inset: 0;
+        background: rgba(6, 78, 59, 0.65);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        gap: 8px;
+        opacity: 0;
+        transition: opacity 0.3s ease;
+    }
+
+    .portfolio-item-card:hover .portfolio-item-overlay { opacity: 1; }
+
+    .portfolio-overlay-btn {
+        font-size: 0.8rem;
+        font-weight: 700;
+        padding: 8px 18px;
+        border-radius: 50px;
+        text-decoration: none;
+        transition: 0.2s;
+        border: 2px solid white;
+        color: white;
+    }
+
+    .portfolio-overlay-btn:hover {
+        background: white;
+        color: #059669;
+    }
+
+    .portfolio-item-body {
+        padding: 14px 16px;
+        display: flex;
+        align-items: center;
+        gap: 10px;
+        border-top: 1px solid #f1f5f9;
+    }
+
+    .portfolio-item-title {
+        font-size: 0.85rem;
+        font-weight: 700;
+        color: #1e293b;
+        flex: 1;
+        min-width: 0;
+        white-space: nowrap;
+        overflow: hidden;
+        text-overflow: ellipsis;
+    }
+
+    .portfolio-item-link {
+        font-size: 0.75rem;
+        font-weight: 700;
+        text-decoration: none;
+        white-space: nowrap;
+        flex-shrink: 0;
+        transition: opacity 0.2s;
+    }
+
+    .portfolio-item-link:hover { opacity: 0.75; }
+
+    .portfolio-delete-btn {
+        width: 30px;
+        height: 30px;
+        border-radius: 8px;
+        border: none;
+        background: #fee2e2;
+        color: #dc2626;
+        font-size: 0.8rem;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        flex-shrink: 0;
+        transition: 0.2s;
+    }
+
+    .portfolio-delete-btn:hover {
+        background: #dc2626;
+        color: white;
+    }
+
+    /* ═══════════════════════════════════
+    VÉRIFICATION — SLOTS DOCUMENTS
+    ═══════════════════════════════════ */
+    .doc-slot {
+        border: 1.5px solid #e2e8f0;
+        border-radius: 16px;
+        overflow: hidden;
+        background: white;
+        height: 100%;
+    }
+
+    .doc-slot--done {
+        border-color: #bbf7d0;
+        background: #f0fdf4;
+    }
+
+    .doc-slot--optional {
+        border-style: dashed;
+    }
+
+    .doc-slot-header {
+        background: #f8fafc;
+        border-bottom: 1px solid #e2e8f0;
+        padding: 12px 16px;
+        font-size: 0.82rem;
+        font-weight: 700;
+        color: #334155;
+    }
+
+    .doc-slot--done .doc-slot-header {
+        background: #dcfce7;
+        border-bottom-color: #bbf7d0;
+        color: #15803d;
+    }
+
+    .doc-slot-body {
+        padding: 16px;
+    }
+
+    .doc-already-sent {
+        font-size: 0.78rem;
+        color: #16a34a;
+        font-weight: 600;
+        margin-bottom: 10px;
+    }
+
+    .upload-zone {
+        min-height: 90px;
+        transition: all 0.25s ease;
+        cursor: pointer;
+        background: #f8fafc;
+    }
+
+    .upload-zone:hover {
+        border-color: #059669 !important;
+        background: #f0fdf4 !important;
+    }
+ 
+</style>
+
 <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;600;800&display=swap" rel="stylesheet">
 <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.0/font/bootstrap-icons.css">
 
@@ -95,9 +417,6 @@
                 </button>
                 <button class="nav-link mb-2" data-bs-toggle="pill" data-bs-target="#calendar">
                     <i class="bi bi-calendar3 me-2"></i>Disponibilités
-                </button>
-                <button class="nav-link mb-2" data-bs-toggle="pill" data-bs-target="#wallet">
-                    <i class="bi bi-wallet2 me-2"></i>Portefeuille
                 </button>
                 <hr class="my-2 opacity-10">
                 <button class="nav-link mb-2 d-flex justify-content-between align-items-center" data-bs-toggle="pill" data-bs-target="#portfolio">
@@ -299,95 +618,184 @@
                     </div>
                 </div>
 
-                @* 4. SECTION : PORTEFEUILLE *@
-                <div class="tab-pane fade" id="wallet">
-                    <h4 class="fw-800 mb-4">Mon Portefeuille</h4>
-                    <div class="row g-4">
-                        <div class="col-md-6">
-                            <div class="bg-gradient-pro text-white p-4 rounded-4 shadow-lg h-100">
-                                <small class="opacity-75">Solde Actuel (Terminé)</small>
-                                <h2 class="fw-800 mb-0">@((Model.Bookings?.Where(b => b.Status == "Completed").Sum(b => b.TotalPrice) ?? 0).ToString("N0")) Ar</h2>
-                                <button class="btn btn-light btn-sm rounded-pill mt-3 px-3 fw-bold">Retirer fonds</button>
-                            </div>
-                        </div>
-                        <div class="col-md-6">
-                            <div class="border p-4 rounded-4 h-100 bg-light">
-                                <small class="text-muted">Missions en cours</small>
-                                <h3 class="fw-bold text-primary mb-0">@((Model.Bookings?.Where(b => b.Status != "Completed").Sum(b => b.TotalPrice) ?? 0).ToString("N0")) Ar</h3>
-                                <small class="text-muted">@(Model.Bookings?.Count(b => b.Status != "Completed") ?? 0) dossiers actifs</small>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-
                 @* 5. SECTION : PORTFOLIO *@
-                <!-- ✅ CORRECTION P12 : Afficher le compteur et bloquer si limite atteinte -->
                 <div class="tab-pane fade" id="portfolio">
+
                     <div class="d-flex justify-content-between align-items-center mb-4">
-                        <h4 class="fw-800">Ma Galerie Portfolio</h4>
-                        <!-- Compteur de photos -->
-                        <span class="badge @(Model.PortfolioCount >= 10 ? "bg-danger" : "bg-primary") rounded-pill px-3 py-2">
-                            @Model.PortfolioCount / 10 photos
+                        <div>
+                            <h4 class="fw-800 mb-1">Ma Galerie Portfolio</h4>
+                            <p class="text-muted small mb-0">
+                                Ajoutez vos projets avec une image, un titre et un lien direct.
+                            </p>
+                        </div>
+                        <span class="badge @(Model.PortfolioCount >= 10 ? "bg-danger" : "bg-primary") rounded-pill px-3 py-2 fs-6">
+                            @Model.PortfolioCount / 10
                         </span>
                     </div>
 
-                    <!-- Formulaire d'upload : visible seulement si moins de 10 photos -->
                     @if (Model.PortfolioCount < 10)
                     {
-                        <form asp-controller="Provider" asp-action="UploadPortfolio"
-                            method="post" enctype="multipart/form-data"
-                            class="mb-5 p-4 bg-light rounded-4 border">
-                            @Html.AntiForgeryToken()
-                            <div class="row g-3">
-                                <div class="col-md-5">
-                                    <label class="label-pro">NOUVELLE IMAGE</label>
-                                    <input type="file" name="portfolioFile" class="form-control" required
-                                        accept=".jpg,.jpeg,.png,.webp,.gif">
-                                </div>
-                                <div class="col-md-5">
-                                    <label class="label-pro">LÉGENDE</label>
-                                    <input type="text" name="description" class="form-control"
-                                        placeholder="Titre du projet">
-                                </div>
-                                <div class="col-md-2 d-flex align-items-end">
-                                    <button type="submit" class="btn btn-dark w-100 rounded-pill py-2">
-                                        Ajouter
-                                    </button>
-                                </div>
+                        <div class="portfolio-add-card mb-5">
+                            <div class="portfolio-add-header">
+                                <i class="bi bi-plus-circle-fill me-2"></i>Ajouter un projet
                             </div>
-                            <p class="text-muted small mt-2 mb-0">
-                                <i class="bi bi-info-circle me-1"></i>
-                                Il vous reste <strong>@(10 - Model.PortfolioCount)</strong> emplacement(s).
-                            </p>
-                        </form>
-                    }
-                    else
-                    {
-                        <!-- Message quand la limite est atteinte -->
-                        <div class="alert alert-warning rounded-4 mb-4 d-flex align-items-center gap-3">
-                            <i class="bi bi-exclamation-triangle-fill fs-4"></i>
-                            <div>
-                                <strong>Limite atteinte !</strong> Vous avez 10 photos dans votre portfolio.
-                                Supprimez une photo pour en ajouter une nouvelle.
+                            <div class="portfolio-add-body">
+                                <form asp-controller="Provider" asp-action="UploadPortfolio"
+                                    method="post" enctype="multipart/form-data">
+                                    @Html.AntiForgeryToken()
+                                    <div class="row g-3">
+                                        <div class="col-md-4">
+                                            <label class="label-pro">IMAGE DU PROJET</label>
+                                            <div class="portfolio-drop-zone" id="portfolioDropZone"
+                                                onclick="document.getElementById('portfolioFile').click()">
+                                                <div id="portfolioPreviewWrapper">
+                                                    <i class="bi bi-image-fill portfolio-drop-icon"></i>
+                                                    <span class="portfolio-drop-text">
+                                                        Cliquez ou glissez<br>
+                                                        <small>JPG, PNG, WEBP — Max 5 Mo</small>
+                                                    </span>
+                                                </div>
+                                                <img id="portfolioPreview" src="" alt=""
+                                                    style="display:none; width:100%; height:100%;
+                                                            object-fit:cover; border-radius:12px;">
+                                            </div>
+                                            <input type="file" id="portfolioFile" name="portfolioFile"
+                                                accept=".jpg,.jpeg,.png,.webp,.gif"
+                                                class="d-none" required>
+                                        </div>
+
+                                        <div class="col-md-8 d-flex flex-column gap-3">
+
+                                            <div>
+                                                <label class="label-pro">NOM DU PROJET</label>
+                                                <input type="text" name="description"
+                                                    class="form-control input-pro"
+                                                    placeholder="Ex : Site e-commerce, App mobile..."
+                                                    required>
+                                            </div>
+
+                                            <div>
+                                                <label class="label-pro">
+                                                    LIEN DU PROJET
+                                                    <span class="text-muted fw-normal">(GitHub, Behance, site…)</span>
+                                                </label>
+                                                <div class="input-group">
+                                                    <span class="input-group-text portfolio-url-prefix">
+                                                        <i class="bi bi-link-45deg"></i>
+                                                    </span>
+                                                    <input type="url" name="projectUrl"
+                                                        class="form-control input-pro border-start-0"
+                                                        placeholder="https://github.com/vous/projet"
+                                                        style="border-radius: 0 12px 12px 0;">
+                                                </div>
+                                                <div class="form-text text-muted small mt-1">
+                                                    <i class="bi bi-info-circle me-1"></i>
+                                                    Optionnel — les clients pourront cliquer pour voir le projet.
+                                                </div>
+                                            </div>
+
+                                            <div class="mt-auto text-end">
+                                                <button type="submit" class="btn btn-primary-mada px-5 rounded-pill py-2 fw-bold">
+                                                    <i class="bi bi-plus-lg me-2"></i>Ajouter ce projet
+                                                </button>
+                                            </div>
+                                        </div>
+
+                                    </div>
+                                </form>
                             </div>
                         </div>
                     }
+                    else
+                    {
+                        <div class="alert alert-warning rounded-4 mb-4 d-flex align-items-center gap-3">
+                            <i class="bi bi-exclamation-triangle-fill fs-4"></i>
+                            <span>
+                                Limite de 10 projets atteinte.
+                                Supprimez un projet pour en ajouter un nouveau.
+                            </span>
+                        </div>
+                    }
 
-                    <!-- Galerie -->
-                    <div class="row g-3">
-                        @if (Model.PortfolioItems?.Any() == true) {
-                            @foreach (var item in Model.PortfolioItems) {
-                                <div class="col-md-4">
-                                    <div class="portfolio-card shadow-sm border bg-white rounded-3 overflow-hidden">
-                                        <img src="@item.ImageUrl" class="w-100" style="height:180px; object-fit:cover;">
-                                        <div class="p-2 d-flex justify-content-between align-items-center">
-                                            <span class="small fw-bold text-truncate me-2">@item.Description</span>
-                                            <!-- ✅ CORRECTION P8 : Formulaire pointe vers Provider (pas Dashboard) -->
-                                            <form asp-controller="Provider" asp-action="DeletePortfolioItem" method="post">
+                    @if (Model.PortfolioItems?.Any() == true)
+                    {
+                        <div class="row g-4">
+                            @foreach (var item in Model.PortfolioItems)
+                            {
+                                <div class="col-md-6 col-lg-4">
+                                    <div class="portfolio-item-card">
+
+                                        <div class="portfolio-item-img-wrapper">
+                                            <img src="@item.ImageUrl" alt="@item.Description">
+
+                                            <div class="portfolio-item-overlay">
+                                                @if (!string.IsNullOrEmpty(item.ProjectUrl))
+                                                {
+                                                    <a href="@item.ProjectUrl" target="_blank" rel="noopener noreferrer"
+                                                    class="portfolio-overlay-btn portfolio-overlay-btn-primary"
+                                                    onclick="event.stopPropagation()">
+                                                        <i class="bi bi-box-arrow-up-right me-1"></i>Voir le projet
+                                                    </a>
+                                                }
+                                            </div>
+                                        </div>
+
+                                        <div class="portfolio-item-body">
+                                            <div class="portfolio-item-title" title="@item.Description">
+                                                @item.Description
+                                            </div>
+
+                                            @if (!string.IsNullOrEmpty(item.ProjectUrl))
+                                            {
+                                                
+                                                // Détecter la plateforme pour afficher une icône adaptée
+                                                string platformIcon = "bi-link-45deg";
+                                                string platformColor = "#64748b";
+                                                string platformLabel = "Voir le projet";
+
+                                                if (item.ProjectUrl.Contains("github.com")) {
+                                                    platformIcon  = "bi-github";
+                                                    platformColor = "#1e293b";
+                                                    platformLabel = "GitHub";
+                                                } else if (item.ProjectUrl.Contains("behance.net")) {
+                                                    platformIcon  = "bi-behance";
+                                                    platformColor = "#0057ff";
+                                                    platformLabel = "Behance";
+                                                } else if (item.ProjectUrl.Contains("dribbble.com")) {
+                                                    platformIcon  = "bi-dribbble";
+                                                    platformColor = "#ea4c89";
+                                                    platformLabel = "Dribbble";
+                                                } else if (item.ProjectUrl.Contains("youtube.com") || item.ProjectUrl.Contains("youtu.be")) {
+                                                    platformIcon  = "bi-youtube";
+                                                    platformColor = "#dc2626";
+                                                    platformLabel = "YouTube";
+                                                } else if (item.ProjectUrl.Contains("linkedin.com")) {
+                                                    platformIcon  = "bi-linkedin";
+                                                    platformColor = "#0a66c2";
+                                                    platformLabel = "LinkedIn";
+                                                }
+                                                
+                                                <a href="@item.ProjectUrl" target="_blank" rel="noopener noreferrer"
+                                                class="portfolio-item-link"
+                                                style="color: @platformColor;">
+                                                    <i class="bi @platformIcon me-1"></i>@platformLabel
+                                                </a>
+                                            }
+                                            else
+                                            {
+                                                <span class="portfolio-item-link text-muted" style="cursor:default;">
+                                                    <i class="bi bi-image me-1"></i>Aucun lien
+                                                </span>
+                                            }
+
+                                            <form asp-controller="Provider" asp-action="DeletePortfolioItem"
+                                                method="post" class="d-inline ms-auto">
                                                 @Html.AntiForgeryToken()
-                                                <input type="hidden" name="id" value="@item.Id" />
-                                                <button type="submit" class="btn btn-link text-danger p-0"
-                                                        onclick="return confirm('Supprimer cette photo ?')">
+                                                <input type="hidden" name="id" value="@item.Id"/>
+                                                <button type="submit"
+                                                        class="portfolio-delete-btn"
+                                                        onclick="return confirm('Supprimer ce projet ?')"
+                                                        title="Supprimer">
                                                     <i class="bi bi-trash"></i>
                                                 </button>
                                             </form>
@@ -395,13 +803,17 @@
                                     </div>
                                 </div>
                             }
-                        } else {
-                            <div class="col-12 text-center py-4 text-muted">
-                                <i class="bi bi-images display-4 d-block mb-2 opacity-25"></i>
-                                Aucune réalisation ajoutée pour le moment.
-                            </div>
-                        }
-                    </div>
+                        </div>
+                    }
+                    else
+                    {
+                        <div class="text-center py-5">
+                            <i class="bi bi-folder2-open display-3 text-muted opacity-25 d-block mb-3"></i>
+                            <p class="text-muted fw-bold mb-1">Aucun projet pour le moment.</p>
+                            <p class="text-muted small">Ajoutez votre premier projet ci-dessus.</p>
+                        </div>
+                    }
+
                 </div>
 
                 @* 6. SECTION : AVIS CLIENTS *@
@@ -431,106 +843,198 @@
                 </div>
 
                 @* 7. SECTION : VÉRIFICATION *@
-                <!-- ✅ CORRECTION P10 : Section vérification complète et fonctionnelle -->
                 <div class="tab-pane fade" id="verification">
                     <h4 class="fw-800 mb-4">Vérification d'Identité</h4>
 
                     @if (Model.IsVerified)
                     {
-                        <!-- Cas 1 : Déjà vérifié -->
-                        <div class="alert alert-success rounded-4 d-flex align-items-center p-4">
+                        <div class="alert alert-success rounded-4 d-flex align-items-center p-4 shadow-sm border-0">
                             <i class="bi bi-patch-check-fill fs-1 me-4 text-success"></i>
                             <div>
                                 <h5 class="fw-bold mb-1">✅ Profil Certifié</h5>
-                                <p class="mb-0 small">
-                                    Votre identité a été vérifiée. Vous bénéficiez d'une meilleure
-                                    visibilité et d'un badge de confiance sur votre profil.
-                                </p>
+                                <p class="mb-0 small text-muted">Votre identité a été vérifiée. Votre badge est actif.</p>
                             </div>
                         </div>
                     }
                     else if (Model.VerificationStatus == "Pending")
                     {
-                        <!-- Cas 2 : Document envoyé, en attente de validation -->
-                        <div class="alert alert-info rounded-4 d-flex align-items-center p-4">
+                        <div class="alert alert-info rounded-4 d-flex align-items-center p-4 shadow-sm border-0">
                             <i class="bi bi-hourglass-split fs-1 me-4 text-primary"></i>
                             <div>
                                 <h5 class="fw-bold mb-1">⏳ Dossier en cours d'examen</h5>
-                                <p class="mb-0 small">
-                                    Vos documents ont bien été reçus. L'administrateur validera
-                                    votre profil dans un délai de 48h ouvrées.
-                                </p>
+                                <p class="mb-0 small">Nous vérifions vos pièces jointes. Réponse sous 48h ouvrées.</p>
                             </div>
                         </div>
-                    }
-                    else if (Model.VerificationStatus == "Rejected")
-                    {
-                        <!-- Cas 3 : Document rejeté → permettre de re-soumettre -->
-                        <div class="alert alert-danger rounded-4 mb-4 d-flex align-items-center p-4">
-                            <i class="bi bi-x-circle-fill fs-1 me-4 text-danger"></i>
-                            <div>
-                                <h5 class="fw-bold mb-1">❌ Dossier refusé</h5>
-                                <p class="mb-0 small">
-                                    Votre document n'a pas pu être accepté. Veuillez soumettre
-                                    un document plus lisible ou un document valide.
-                                </p>
-                            </div>
-                        </div>
-
-                        <!-- Formulaire de re-soumission -->
-                        <form asp-controller="Provider" asp-action="UploadVerificationDocument"
-                            method="post" enctype="multipart/form-data"
-                            class="p-4 bg-light rounded-4 border">
-                            @Html.AntiForgeryToken()
-                            <label class="label-pro mb-2">NOUVEAU DOCUMENT (CIN, Passeport ou Diplôme)</label>
-                            <div class="input-group">
-                                <input type="file" name="documentFile" class="form-control"
-                                    accept=".jpg,.jpeg,.png,.pdf" required>
-                                <button type="submit" class="btn btn-danger px-4 fw-bold">
-                                    Re-soumettre
-                                </button>
-                            </div>
-                            <p class="text-muted small mt-2 mb-0">Formats acceptés : jpg, png, pdf — max 5 Mo</p>
-                        </form>
                     }
                     else
                     {
-                        <!-- Cas 4 : Jamais soumis (NotSubmitted) -->
-                        <div class="card border-0 bg-light rounded-4 p-5 text-center mb-4">
-                            <i class="bi bi-shield-lock display-4 text-muted mb-3"></i>
-                            <h5 class="fw-bold mb-2">Obtenez le badge de confiance</h5>
-                            <p class="text-muted small mx-auto mb-0" style="max-width: 450px;">
-                                Téléversez une pièce d'identité (CIN ou Passeport) pour certifier
-                                votre profil. Cela augmente votre visibilité et inspire confiance aux clients.
-                            </p>
-                        </div>
+                        if (Model.VerificationStatus == "Rejected")
+                        {
+                            <div class="alert alert-danger rounded-4 mb-4 d-flex align-items-center p-4 shadow-sm border-0">
+                                <i class="bi bi-x-circle-fill fs-1 me-4 text-danger"></i>
+                                <div>
+                                    <h5 class="fw-bold mb-1">❌ Dossier refusé</h5>
+                                    <p class="mb-0 small">Les documents précédents étaient invalides. Veuillez renvoyer des copies claires.</p>
+                                </div>
+                            </div>
+                        }
+                        else
+                        {
+                            <div class="card border-0 bg-light rounded-4 p-5 text-center mb-4">
+                                <i class="bi bi-shield-lock display-4 text-muted mb-3"></i>
+                                <h5 class="fw-bold mb-2">Certifiez votre compte</h5>
+                                <p class="text-muted small mx-auto mb-0" style="max-width: 450px;">
+                                    Une identité vérifiée augmente vos chances de décrocher des missions sur MadaServices.
+                                </p>
+                            </div>
+                        }
 
-                        <!-- ✅ CORRECTION P10 : Formulaire fonctionnel avec action correcte -->
+                        @* Formulaire Unique pour Soumission et Re-soumission *@
                         <form asp-controller="Provider" asp-action="UploadVerificationDocument"
                             method="post" enctype="multipart/form-data"
                             class="p-4 bg-white rounded-4 border shadow-sm">
                             @Html.AntiForgeryToken()
-                            <div class="row g-3 align-items-end">
-                                <div class="col-md-8">
-                                    <label class="label-pro mb-2">
-                                        DOCUMENT D'IDENTITÉ (CIN, Passeport ou Diplôme)
-                                    </label>
-                                    <input type="file" name="documentFile" class="form-control"
-                                        accept=".jpg,.jpeg,.png,.pdf" required>
-                                    <p class="text-muted small mt-1 mb-0">
-                                        Formats acceptés : jpg, png, pdf — max 5 Mo
-                                    </p>
+
+                            <p class="text-muted small mb-4">
+                                <i class="bi bi-info-circle-fill text-primary me-1"></i>
+                                Les champs marqués <span class="text-danger fw-bold">*</span> sont obligatoires.
+                                Formats acceptés : JPG, PNG, PDF — max 5 Mo par fichier.
+                            </p>
+
+                            <div class="row g-4">
+
+                                @* ── CIN ─────────────────────────────────────── *@
+                                <div class="col-md-6">
+                                    <div class="doc-slot @(Model.CinDocumentPath != null ? "doc-slot--done" : "")">
+                                        <div class="doc-slot-header">
+                                            <i class="bi bi-person-vcard-fill me-2"></i>
+                                            CIN (Carte d'Identité Nationale)
+                                            <span class="text-danger ms-1">*</span>
+                                        </div>
+                                        <div class="doc-slot-body">
+                                            @if (Model.CinDocumentPath != null && Model.VerificationStatus == "Pending")
+                                            {
+                                                <div class="doc-already-sent">
+                                                    <i class="bi bi-check-circle-fill text-success me-2"></i>
+                                                    Fichier déjà envoyé
+                                                </div>
+                                            }
+                                            <label class="upload-zone border-dashed rounded-3 d-flex flex-column
+                                                        align-items-center justify-content-center p-3 cursor-pointer"
+                                                for="cinFile">
+                                                <i class="bi bi-cloud-upload fs-3 text-muted opacity-50"></i>
+                                                <span class="small text-muted mt-1">Cliquez pour choisir</span>
+                                                <span id="cinFileName" class="small text-success fw-bold mt-1 d-none"></span>
+                                            </label>
+                                            <input type="file" id="cinFile" name="cinFile"
+                                                accept=".jpg,.jpeg,.png,.pdf" class="d-none"
+                                                onchange="showFileName(this, 'cinFileName')">
+                                        </div>
+                                    </div>
                                 </div>
-                                <div class="col-md-4">
-                                    <button type="submit" class="btn btn-primary-mada w-100 rounded-pill py-3 fw-bold">
-                                        <i class="bi bi-cloud-upload me-2"></i>Envoyer le document
+
+                                @* ── CV ──────────────────────────────────────── *@
+                                <div class="col-md-6">
+                                    <div class="doc-slot @(Model.CvDocumentPath != null ? "doc-slot--done" : "")">
+                                        <div class="doc-slot-header">
+                                            <i class="bi bi-file-earmark-text-fill me-2"></i>
+                                            CV (Curriculum Vitae)
+                                            <span class="text-danger ms-1">*</span>
+                                        </div>
+                                        <div class="doc-slot-body">
+                                            @if (Model.CvDocumentPath != null && Model.VerificationStatus == "Pending")
+                                            {
+                                                <div class="doc-already-sent">
+                                                    <i class="bi bi-check-circle-fill text-success me-2"></i>
+                                                    Fichier déjà envoyé
+                                                </div>
+                                            }
+                                            <label class="upload-zone border-dashed rounded-3 d-flex flex-column
+                                                        align-items-center justify-content-center p-3 cursor-pointer"
+                                                for="cvFile">
+                                                <i class="bi bi-cloud-upload fs-3 text-muted opacity-50"></i>
+                                                <span class="small text-muted mt-1">Cliquez pour choisir</span>
+                                                <span id="cvFileName" class="small text-success fw-bold mt-1 d-none"></span>
+                                            </label>
+                                            <input type="file" id="cvFile" name="cvFile"
+                                                accept=".jpg,.jpeg,.png,.pdf" class="d-none"
+                                                onchange="showFileName(this, 'cvFileName')">
+                                        </div>
+                                    </div>
+                                </div>
+
+                                @* ── CERTIFICAT DE RÉSIDENCE ──────────────────── *@
+                                <div class="col-md-6">
+                                    <div class="doc-slot @(Model.ResidenceCertPath != null ? "doc-slot--done" : "")">
+                                        <div class="doc-slot-header">
+                                            <i class="bi bi-house-fill me-2"></i>
+                                            Certificat de Résidence
+                                            <span class="text-danger ms-1">*</span>
+                                        </div>
+                                        <div class="doc-slot-body">
+                                            @if (Model.ResidenceCertPath != null && Model.VerificationStatus == "Pending")
+                                            {
+                                                <div class="doc-already-sent">
+                                                    <i class="bi bi-check-circle-fill text-success me-2"></i>
+                                                    Fichier déjà envoyé
+                                                </div>
+                                            }
+                                            <label class="upload-zone border-dashed rounded-3 d-flex flex-column
+                                                        align-items-center justify-content-center p-3 cursor-pointer"
+                                                for="residenceFile">
+                                                <i class="bi bi-cloud-upload fs-3 text-muted opacity-50"></i>
+                                                <span class="small text-muted mt-1">Cliquez pour choisir</span>
+                                                <span id="residenceFileName" class="small text-success fw-bold mt-1 d-none"></span>
+                                            </label>
+                                            <input type="file" id="residenceFile" name="residenceFile"
+                                                accept=".jpg,.jpeg,.png,.pdf" class="d-none"
+                                                onchange="showFileName(this, 'residenceFileName')">
+                                        </div>
+                                    </div>
+                                </div>
+
+                                @* ── DIPLÔME (facultatif) ─────────────────────── *@
+                                <div class="col-md-6">
+                                    <div class="doc-slot doc-slot--optional
+                                                @(Model.DiplomaDocumentPath != null ? "doc-slot--done" : "")">
+                                        <div class="doc-slot-header">
+                                            <i class="bi bi-award-fill me-2"></i>
+                                            Diplôme
+                                            <span class="badge bg-secondary rounded-pill ms-2 fw-normal"
+                                                style="font-size:0.65rem;">Facultatif</span>
+                                        </div>
+                                        <div class="doc-slot-body">
+                                            @if (Model.DiplomaDocumentPath != null && Model.VerificationStatus == "Pending")
+                                            {
+                                                <div class="doc-already-sent">
+                                                    <i class="bi bi-check-circle-fill text-success me-2"></i>
+                                                    Fichier déjà envoyé
+                                                </div>
+                                            }
+                                            <label class="upload-zone border-dashed rounded-3 d-flex flex-column
+                                                        align-items-center justify-content-center p-3 cursor-pointer"
+                                                for="diplomaFile">
+                                                <i class="bi bi-cloud-upload fs-3 text-muted opacity-50"></i>
+                                                <span class="small text-muted mt-1">Cliquez pour choisir</span>
+                                                <span id="diplomaFileName" class="small text-success fw-bold mt-1 d-none"></span>
+                                            </label>
+                                            <input type="file" id="diplomaFile" name="diplomaFile"
+                                                accept=".jpg,.jpeg,.png,.pdf" class="d-none"
+                                                onchange="showFileName(this, 'diplomaFileName')">
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <div class="col-12 text-end mt-2">
+                                    <button type="submit" class="btn btn-primary-mada px-5 rounded-pill py-3 fw-bold">
+                                        <i class="bi bi-cloud-upload me-2"></i>Envoyer le dossier
                                     </button>
                                 </div>
+
                             </div>
                         </form>
                     }
                 </div>
-
             </div>
         </div>
     </div>
@@ -550,55 +1054,63 @@
                 }).then(res => { if(!res.ok) alert("Erreur réseau"); });
             });
         });
-    </script>
-}
 
-<style>
-    :root { 
-        --mada-primary: #059669; 
-        --mada-dark: #064e3b; 
-        --mada-bg: #f8fafc;
-        --mada-primary-soft: #ecfdf5;
+        
+    function setOperator(name, element) {
+        // Gérer l'apparence des boutons d'opérateurs
+        document.querySelectorAll('.btn-op').forEach(btn => btn.classList.remove('active'));
+        element.classList.add('active');
+
+        // Mettre à jour le texte du bouton principal
+        const mainBtn = document.getElementById('mainWithdrawBtn');
+        mainBtn.innerHTML = `<i class="bi bi-send me-2"></i>Retirer via ${name}`;
     }
-    
-    body { background-color: var(--mada-bg); font-family: 'Outfit', sans-serif; color: #1e293b; }
-    .fw-800 { font-weight: 800; }
-    .fw-600 { font-weight: 600; }
-    .bg-gradient-pro { background: linear-gradient(135deg, var(--mada-primary) 0%, var(--mada-dark) 100%); }
-    
-    .avatar-wrapper { width: 100px; height: 100px; background: #eee; }
-    .avatar-overlay {
-        position: absolute; top: 0; left: 0; width: 100%; height: 100%;
-        background: rgba(0,0,0,0.4); display: flex; align-items: center;
-        justify-content: center; opacity: 0; transition: 0.3s;
+
+ 
+    function updateFileList() {
+        const input = document.getElementById('fileInput');
+        const list = document.getElementById('fileList');
+        list.innerHTML = ''; // Réinitialiser la liste
+
+        if (input.files) {
+            Array.from(input.files).forEach(file => {
+                const badge = document.createElement('div');
+                badge.className = 'file-badge';
+                
+                // Icône selon le type de fichier
+                const icon = file.type === 'application/pdf' ? 'bi-file-pdf text-danger' : 'bi-image text-primary';
+                
+                badge.innerHTML = `<i class="bi ${icon} me-2"></i> ${file.name} <small class="text-muted ms-2">(${(file.size/1024).toFixed(1)} KB)</small>`;
+                list.appendChild(badge);
+            });
+        }
     }
-    .avatar-container:hover .avatar-overlay { opacity: 1; }
-    
-    .sidebar-nav .nav-link { 
-        color: #475569; border-radius: 12px; font-weight: 600; text-align: left;
-        margin-bottom: 5px; padding: 12px 18px;
+
+    // Preview instantané de l'image portfolio avant soumission
+    const portfolioFileInput = document.getElementById('portfolioFile');
+    if (portfolioFileInput) {
+        portfolioFileInput.addEventListener('change', function () {
+            const file = this.files[0];
+            if (!file) return;
+
+            const reader = new FileReader();
+            reader.onload = e => {
+                const preview  = document.getElementById('portfolioPreview');
+                const wrapper  = document.getElementById('portfolioPreviewWrapper');
+                preview.src    = e.target.result;
+                preview.style.display  = 'block';
+                wrapper.style.display  = 'none';
+            };
+            reader.readAsDataURL(file);
+        });
     }
-    .sidebar-nav .nav-link:hover { background: var(--mada-primary-soft); color: var(--mada-primary); }
-    .sidebar-nav .nav-link.active { 
-        background-color: var(--mada-primary) !important; color: white !important; 
-        box-shadow: 0 4px 12px rgba(5,150,105,0.25);
+
+    function showFileName(input, labelId) {
+        const label = document.getElementById(labelId);
+        if (input.files && input.files[0]) {
+            label.textContent = '✓ ' + input.files[0].name;
+            label.classList.remove('d-none');
+        }
     }
-    
-    .label-pro { font-weight: 700; font-size: 0.75rem; color: #64748b; margin-bottom: 0.4rem; display: block; text-transform: uppercase; }
-    .input-pro { border-radius: 12px; border: 1.5px solid #e2e8f0; padding: 0.75rem; }
-    .input-pro:focus { border-color: var(--mada-primary); box-shadow: 0 0 0 3px rgba(5,150,105,0.1); outline: none; }
-    
-    .btn-primary-mada { background-color: var(--mada-primary); color: white; font-weight: 600; border: none; }
-    .btn-primary-mada:hover { background-color: var(--mada-dark); transform: translateY(-2px); color: white; }
-    
-    .bg-warning-soft { background-color: #fffbeb; color: #d97706; }
-    .bg-success-soft { background-color: #f0fdf4; color: #16a34a; }
-    .bg-primary-soft { background-color: #eff6ff; color: #2563eb; }
-    
-    .border-dashed { border: 2px dashed #cbd5e1 !important; }
-    .cursor-pointer { cursor: pointer; }
-    .portfolio-card:hover { transform: translateY(-5px); transition: 0.3s; }
-    
-    .animate-pulse { animation: pulse 2s infinite; }
-    @@keyframes pulse { 0% { opacity: 1; } 50% { opacity: 0.6; } 100% { opacity: 1; } }
-</style>
+</script>
+}

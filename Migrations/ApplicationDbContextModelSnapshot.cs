@@ -125,6 +125,41 @@ namespace MadaServices.Migrations
                     b.ToTable("Cities");
                 });
 
+            modelBuilder.Entity("MadaServices.Models.ClientDocument", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int");
+
+                    MySqlPropertyBuilderExtensions.UseMySqlIdentityColumn(b.Property<int>("Id"));
+
+                    b.Property<string>("DocumentType")
+                        .IsRequired()
+                        .HasMaxLength(50)
+                        .HasColumnType("varchar(50)");
+
+                    b.Property<string>("FilePath")
+                        .IsRequired()
+                        .HasColumnType("longtext");
+
+                    b.Property<string>("Status")
+                        .IsRequired()
+                        .HasMaxLength(20)
+                        .HasColumnType("varchar(20)");
+
+                    b.Property<DateTime>("UploadedAt")
+                        .HasColumnType("datetime(6)");
+
+                    b.Property<int>("UserId")
+                        .HasColumnType("int");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("UserId");
+
+                    b.ToTable("ClientDocuments");
+                });
+
             modelBuilder.Entity("MadaServices.Models.PortfolioItem", b =>
                 {
                     b.Property<int>("Id")
@@ -137,6 +172,9 @@ namespace MadaServices.Migrations
                         .HasColumnType("longtext");
 
                     b.Property<string>("ImageUrl")
+                        .HasColumnType("longtext");
+
+                    b.Property<string>("ProjectUrl")
                         .HasColumnType("longtext");
 
                     b.Property<int>("ProviderId")
@@ -205,6 +243,9 @@ namespace MadaServices.Migrations
                     b.Property<DateTime>("CreatedAt")
                         .HasColumnType("datetime(6)");
 
+                    b.Property<int>("DeletedReviewsCount")
+                        .HasColumnType("int");
+
                     b.Property<string>("Discriminator")
                         .IsRequired()
                         .HasMaxLength(8)
@@ -222,6 +263,12 @@ namespace MadaServices.Migrations
                         .HasColumnType("longtext");
 
                     b.Property<string>("ImageUrl")
+                        .HasColumnType("longtext");
+
+                    b.Property<bool>("IsVerified")
+                        .HasColumnType("tinyint(1)");
+
+                    b.Property<string>("JobTitle")
                         .HasColumnType("longtext");
 
                     b.Property<bool>("LockoutEnabled")
@@ -252,6 +299,9 @@ namespace MadaServices.Migrations
 
                     b.Property<string>("SecurityStamp")
                         .HasColumnType("longtext");
+
+                    b.Property<DateTime?>("SuspendedAt")
+                        .HasColumnType("datetime(6)");
 
                     b.Property<bool>("TwoFactorEnabled")
                         .HasColumnType("tinyint(1)");
@@ -417,12 +467,21 @@ namespace MadaServices.Migrations
                     b.Property<int?>("CategoryId")
                         .HasColumnType("int");
 
+                    b.Property<string>("CinDocumentPath")
+                        .HasColumnType("longtext");
+
                     b.Property<string>("City")
                         .IsRequired()
                         .HasColumnType("longtext");
 
+                    b.Property<string>("CvDocumentPath")
+                        .HasColumnType("longtext");
+
                     b.Property<string>("Description")
                         .IsRequired()
+                        .HasColumnType("longtext");
+
+                    b.Property<string>("DiplomaDocumentPath")
                         .HasColumnType("longtext");
 
                     b.Property<bool>("HasSubmittedDocs")
@@ -434,17 +493,10 @@ namespace MadaServices.Migrations
                     b.Property<bool>("IsPaused")
                         .HasColumnType("tinyint(1)");
 
-                    b.Property<bool>("IsVerified")
-                        .HasColumnType("tinyint(1)");
-
-                    b.Property<string>("JobTitle")
-                        .IsRequired()
-                        .HasColumnType("longtext");
-
                     b.Property<string>("PortfolioUrl")
                         .HasColumnType("longtext");
 
-                    b.Property<string>("VerificationDocumentPath")
+                    b.Property<string>("ResidenceCertPath")
                         .HasColumnType("longtext");
 
                     b.Property<string>("VerificationStatus")
@@ -472,6 +524,17 @@ namespace MadaServices.Migrations
                         .HasForeignKey("ProviderId")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
+                });
+
+            modelBuilder.Entity("MadaServices.Models.ClientDocument", b =>
+                {
+                    b.HasOne("MadaServices.Models.User", "User")
+                        .WithMany("Documents")
+                        .HasForeignKey("UserId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("User");
                 });
 
             modelBuilder.Entity("MadaServices.Models.PortfolioItem", b =>
@@ -560,6 +623,11 @@ namespace MadaServices.Migrations
             modelBuilder.Entity("MadaServices.Models.Category", b =>
                 {
                     b.Navigation("Providers");
+                });
+
+            modelBuilder.Entity("MadaServices.Models.User", b =>
+                {
+                    b.Navigation("Documents");
                 });
 
             modelBuilder.Entity("MadaServices.Models.Provider", b =>

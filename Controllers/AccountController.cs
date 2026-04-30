@@ -11,15 +11,18 @@ namespace MadaServices.Controllers
         private readonly UserManager<User> _userManager;
         private readonly SignInManager<User> _signInManager;
         private readonly RoleManager<IdentityRole<int>> _roleManager;
+        private readonly IWebHostEnvironment _hostEnvironment;
 
         public AccountController(
             UserManager<User> userManager, 
             SignInManager<User> signInManager,
-            RoleManager<IdentityRole<int>> roleManager)
+            RoleManager<IdentityRole<int>> roleManager,
+            IWebHostEnvironment hostEnvironment)
         {
             _userManager = userManager;
             _signInManager = signInManager;
             _roleManager = roleManager;
+            _hostEnvironment = hostEnvironment;
         }
 
         // --- CONNEXION ---
@@ -93,30 +96,34 @@ namespace MadaServices.Controllers
             User user;
             if (role == "Provider")
             {
-                user = new Provider 
-                { 
-                    UserName = email, 
-                    Email = email, 
-                    FullName = fullName ?? "", 
-                    PhoneNumber = phone ?? "", // Champ standard Identity
-                    Phone = phone ?? "",       // Votre champ personnalisé (Évite l'erreur MySQL NULL)
-                    JobTitle = "Nouveau Prestataire", 
-                    City = "Non spécifiée",
-                    CreatedAt = DateTime.Now,
-                    EmailConfirmed = true // Pour simplifier vos tests
+                user = new Provider
+                {
+                    UserName       = email,
+                    Email          = email,
+                    FullName       = fullName ?? "",
+                    PhoneNumber    = phone ?? "",
+                    Phone          = phone ?? "",
+                    JobTitle       = "Nouveau Prestataire",
+                    City           = "Non spécifiée",
+                    CreatedAt      = DateTime.Now,
+                    EmailConfirmed = true,
+                    // ✅ FIX 15 : Activer le lockout pour permettre la suspension
+                    LockoutEnabled = true
                 };
             }
             else
             {
-                user = new User 
-                { 
-                    UserName = email, 
-                    Email = email, 
-                    FullName = fullName ?? "", 
-                    PhoneNumber = phone ?? "", 
-                    Phone = phone ?? "",
-                    CreatedAt = DateTime.Now,
-                    EmailConfirmed = (role == "Admin") // L'admin est auto-confirmé
+                user = new User
+                {
+                    UserName       = email,
+                    Email          = email,
+                    FullName       = fullName ?? "",
+                    PhoneNumber    = phone ?? "",
+                    Phone          = phone ?? "",
+                    CreatedAt      = DateTime.Now,
+                    EmailConfirmed = (role == "Admin"),
+                    // ✅ FIX 15 : Activer le lockout pour permettre la suspension
+                    LockoutEnabled = true
                 };
             }
 
@@ -172,6 +179,96 @@ namespace MadaServices.Controllers
         public IActionResult AccessDenied()
         {
             return View();
+        }
+
+        // --- PROFIL (Affichage et Modification) ---
+
+        [HttpGet]
+        public async Task<IActionResult> Profile()
+        {
+            var user = await _userManager.GetUserAsync(User);
+            if (user == null) return RedirectToAction("Login");
+
+            return View(user); // Créez une vue Profile.cshtml pour afficher le formulaire
+        }
+
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        public async Task<IActionResult> UpdateProfile(string fullName, string phoneNumber, IFormFile? photo)
+        {
+            var user = await _userManager.GetUserAsync(User);
+            if (user == null) return NotFound();
+
+            user.FullName = fullName;
+            user.PhoneNumber = phoneNumber;
+            user.Phone = phoneNumber; // Synchronisation avec votre champ personnalisé
+
+            // Gestion de l'upload de la photo
+            if (photo != null && photo.Length > 0)
+            {
+                string uploadsFolder = Path.Combine(_hostEnvironment.WebRootPath, "uploads/profiles");
+                if (!Directory.Exists(uploadsFolder)) Directory.CreateDirectory(uploadsFolder);
+
+                string uniqueFileName = Guid.NewGuid().ToString() + "_" + photo.FileName;
+                string filePath = Path.Combine(uploadsFolder, uniqueFileName);
+
+                using (var fileStream = new FileStream(filePath, FileMode.Create))
+                {
+                    await photo.CopyToAsync(fileStream);
+                }
+
+                // Supprimer l'ancienne photo si nécessaire ici...
+                // user.ProfilePicturePath = "/uploads/profiles/" + uniqueFileName; 
+                // Note: Assurez-vous que votre modèle User a une propriété pour le chemin de l'image
+                ViewBag.PhotoUrl = "/uploads/profiles/" + uniqueFileName;
+            }
+
+            var result = await _userManager.UpdateAsync(user);
+            if (result.Succeeded)
+            {
+                TempData["Success"] = "Profil mis à jour avec succès !";
+                return RedirectToAction("Profile");
+            }
+
+            foreach (var error in result.Errors) ModelState.AddModelError("", error.Description);
+            return View("Profile", user);
+        }
+
+        [HttpPost]
+        [ValidateAntiForgeryToken] // Bonne pratique de sécurité
+        public async Task<IActionResult> UpdateProfilePhoto(IFormFile photo)
+        {
+            var user = await _userManager.GetUserAsync(User);
+            if (user == null) return NotFound();
+
+            if (photo != null && photo.Length > 0)
+            {
+                // 1. Créer le dossier s'il n'existe pas
+                string uploadsFolder = Path.Combine(_hostEnvironment.WebRootPath, "uploads/profiles");
+                if (!Directory.Exists(uploadsFolder)) Directory.CreateDirectory(uploadsFolder);
+
+                // 2. Générer un nom unique pour éviter les doublons
+                string uniqueFileName = Guid.NewGuid().ToString() + "_" + photo.FileName;
+                string filePath = Path.Combine(uploadsFolder, uniqueFileName);
+
+                // 3. Sauvegarder le fichier physiquement
+                using (var fileStream = new FileStream(filePath, FileMode.Create))
+                {
+                    await photo.CopyToAsync(fileStream);
+                }
+
+                // 4. Mettre à jour le chemin dans la base de données
+                // Assurez-vous que votre modèle User a une propriété 'ProfilePicturePath'
+                user.ImageUrl = "/uploads/profiles/" + uniqueFileName;
+                
+                var result = await _userManager.UpdateAsync(user);
+                if (result.Succeeded)
+                {
+                    return RedirectToAction("Index", "Customer"); // Ou là où se trouve votre dashboard
+                }
+            }
+
+            return RedirectToAction("Index", "home");
         }
     }
 }

@@ -18,12 +18,15 @@
         --emerald:     #00b894;
     }
 
+    .provider-card .card-body { display: flex; flex-direction: column; }
+
     .provider-card {
         border: 1px solid #f0f0f0;
         border-radius: 24px;
         transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
         background: white;
         overflow: hidden;
+        min-width: 340px;
     }
     .provider-card:hover {
         transform: translateY(-10px);
@@ -61,10 +64,12 @@
     .badge-verified {
         background: var(--indigo-soft);
         color: var(--indigo-main);
-        font-size: 0.7rem; font-weight: 700;
-        padding: 4px 12px;
+        font-size: 0.7rem;
+        font-weight: 700;
+        padding: 3px 10px;
         border-radius: 50px;
-        letter-spacing: 0.5px;
+        letter-spacing: 0.4px;
+        white-space: nowrap;     /* ✅ empêche le badge de se couper */
     }
 
     .text-indigo { color: var(--indigo-main); }
@@ -103,13 +108,13 @@
     <div class="card-body d-flex flex-column">
 
 
-        <div class="d-flex align-items-center mb-3">
-            <div class="avatar-container me-3">
+        <div class="d-flex align-items-start mb-3">
+            <div class="avatar-container me-3" style="flex-shrink: 0;">
                 @if (!string.IsNullOrEmpty(Model.ImageUrl)) {
                     <img src="@Model.ImageUrl"
-                         class="avatar-circle"
-                         style="object-fit: cover;"
-                         alt="@Model.FullName">
+                        class="avatar-circle"
+                        style="object-fit: cover;"
+                        alt="@Model.FullName">
                 } else {
                     <div class="avatar-circle">
                         <span>@(Model.FullName?.Substring(0, 1).ToUpper() ?? "P")</span>
@@ -118,14 +123,25 @@
                 <div class="status-dot @(Model.IsPaused ? "status-offline" : "status-online")"></div>
             </div>
 
-            <div class="overflow-hidden">
-                <h5 class="fw-800 mb-0 text-truncate">@(Model.FullName ?? "Prestataire")</h5>
-                <div class="d-flex align-items-center gap-2 mt-1">
-                    <small class="text-muted">
-                        <i class="bi bi-geo-alt"></i> @Model.City
-                    </small>
+            <div style="min-width: 0; flex: 1;">
+
+                <h5 class="fw-800 mb-1" style="
+                    white-space: nowrap;
+                    overflow: hidden;
+                    text-overflow: ellipsis;
+                    max-width: 100%;
+                ">
+                    @(Model.FullName ?? "Prestataire")
+                </h5>
+
+                <div class="d-flex align-items-center gap-2 flex-wrap">
+                    <div class="d-flex align-items-center" style="flex-shrink: 0;">
+                        <i class="bi bi-geo-alt text-muted me-1" style="font-size: 0.8rem;"></i>
+                        <small class="text-muted">@Model.City</small>
+                    </div>
+
                     @if (Model.IsVerified) {
-                        <span class="badge-verified">
+                        <span class="badge-verified" style="display: inline-flex; align-items: center; flex-shrink: 0;">
                             <i class="bi bi-patch-check-fill me-1"></i>Vérifié
                         </span>
                     }

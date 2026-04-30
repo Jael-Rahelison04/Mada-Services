@@ -1,6 +1,16 @@
 @model MadaServices.Models.User
+@using System.IO
 
-<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.1/font/bootstrap-icons.css">
+@{
+    // Cast pour accéder aux propriétés spécifiques au Provider
+    var provider = Model as MadaServices.Models.Provider;
+    bool isProvider = provider != null;
+    bool isSuspended = Model.LockoutEnd.HasValue
+        && Model.LockoutEnd.Value > DateTimeOffset.UtcNow;
+}
+
+<link rel="stylesheet"
+      href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.1/font/bootstrap-icons.css">
 
 <style>
     :root {
@@ -20,26 +30,28 @@
     .premium-card {
         background: var(--glass);
         backdrop-filter: blur(15px);
-        -webkit-backdrop-filter: blur(15px);
         border: 1px solid var(--glass-border);
         border-radius: 35px;
         box-shadow: 0 20px 40px rgba(0,0,0,0.06);
     }
 
     .info-box {
-        background: rgba(255, 255, 255, 0.5);
+        background: rgba(255,255,255,0.5);
         border-radius: 20px;
         padding: 20px;
-        border: 1px solid rgba(255, 255, 255, 0.7);
-        transition: 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+        border: 1px solid rgba(255,255,255,0.7);
+        transition: 0.3s;
         height: 100%;
     }
-
     .info-box:hover {
         background: white;
-        transform: translateY(-5px);
-        box-shadow: 0 10px 20px rgba(0,0,0,0.03);
+        transform: translateY(-4px);
+        box-shadow: 0 10px 20px rgba(0,0,0,0.04);
     }
+
+    /* ✅ Carte document cliquable */
+    .info-box.doc-card { cursor: pointer; }
+    .info-box.doc-card:hover .doc-icon { color: #4338ca; }
 
     .avatar-detail {
         width: 120px; height: 120px;
@@ -48,123 +60,1371 @@
         border-radius: 30px;
         display: flex; align-items: center; justify-content: center;
         font-size: 3rem;
-        box-shadow: 0 15px 30px rgba(99, 102, 241, 0.3);
+        box-shadow: 0 15px 30px rgba(99,102,241,0.3);
         margin: 0 auto 20px;
+        overflow: hidden;
+    }
+
+    .avatar-detail img {
+        width: 100%; height: 100%;
+        object-fit: cover;
     }
 
     .status-badge {
-        padding: 8px 20px;
-        border-radius: 50px;
-        font-weight: 700;
-        text-transform: uppercase;
-        font-size: 0.75rem;
-        letter-spacing: 0.5px;
+        padding: 8px 20px; border-radius: 50px;
+        font-weight: 700; text-transform: uppercase;
+        font-size: 0.75rem; letter-spacing: 0.5px;
     }
 
     .btn-grad {
         border: none; color: white !important;
-        padding: 16px 30px;
-        font-weight: 700;
-        transition: 0.3s;
-        border-radius: 50px;
+        padding: 16px 30px; font-weight: 700;
+        transition: 0.3s; border-radius: 50px;
     }
-
-    .btn-grad-danger { background: var(--danger-gradient); }
+    .btn-grad-danger  { background: var(--danger-gradient); }
     .btn-grad-success { background: var(--success-gradient); }
-    .btn-grad:hover { transform: translateY(-2px); box-shadow: 0 12px 24px rgba(0,0,0,0.15); }
+    .btn-grad:hover   { transform: translateY(-2px);
+                        box-shadow: 0 12px 24px rgba(0,0,0,0.15); }
 
     .label-custom {
-        color: #64748b;
-        font-size: 0.7rem;
-        font-weight: 800;
-        text-transform: uppercase;
-        margin-bottom: 6px;
-        display: block;
+        color: #64748b; font-size: 0.7rem;
+        font-weight: 800; text-transform: uppercase;
+        margin-bottom: 6px; display: block;
         letter-spacing: 0.05em;
     }
+
+    .doc-icon { font-size: 2rem; color: #94a3b8; transition: 0.3s; }
+
+    .doc-row {
+        background: rgba(255,255,255,0.6);
+        border: 1px solid rgba(0,0,0,0.06);
+        border-radius: 14px;
+        padding: 14px 16px;
+    }
+
+    .doc-row-header {
+        display: flex;
+        align-items: center;
+        gap: 12px;
+        flex-wrap: wrap;
+    }
+
+    .doc-type-icon {
+        width: 40px;
+        height: 40px;
+        border-radius: 10px;
+        flex-shrink: 0;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 16px;
+    }
+
+    .doc-info { flex: 1; min-width: 0; }
+
+    .doc-info-name {
+        font-size: 0.85rem;
+        font-weight: 700;
+        color: #1e293b;
+        margin-bottom: 2px;
+    }
+
+    .doc-info-date {
+        display: flex;
+        align-items: center;
+        gap: 6px;
+    }
+
+    .doc-info-date span {
+        font-size: 0.72rem;
+        color: #94a3b8;
+    }
+
+    .doc-status-badge {
+        font-size: 0.7rem;
+        font-weight: 700;
+        padding: 4px 10px;
+        border-radius: 20px;
+        white-space: nowrap;
+        flex-shrink: 0;
+    }
+
+    .doc-actions { display: flex; gap: 6px; flex-shrink: 0; }
+
+    .doc-action-btn { font-size: 0.75rem; }
+
+    .doc-validate-bar {
+        display: flex;
+        gap: 8px;
+        margin-top: 12px;
+        padding-top: 12px;
+        border-top: 1px solid rgba(0,0,0,0.05);
+    }
+
+    .doc-revoke-bar {
+        margin-top: 10px;
+        padding-top: 10px;
+        border-top: 1px solid rgba(0,0,0,0.05);
+    }
+
+    .doc-revoke-btn { font-size: 0.72rem; }
+
+    .doc-empty {
+        text-align: center;
+        padding: 24px 0;
+    }
+
+    .doc-empty i {
+        font-size: 2.5rem;
+        color: #cbd5e1;
+        display: block;
+        margin-bottom: 10px;
+    }
+
+    .doc-empty span {
+        font-size: 0.82rem;
+        color: #94a3b8;
+        display: block;
+    }
+
+    .doc-header-bar {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        padding-bottom: 12px;
+        margin-bottom: 16px;
+        border-bottom: 1px solid rgba(0,0,0,0.06);
+    }
+
+    .doc-header-left { display: flex; align-items: center; gap: 8px; }
+
+    .doc-header-left i { font-size: 14px; color: #4f46e5; }
+
+    .doc-counter {
+        font-size: 0.7rem;
+        font-weight: 700;
+        padding: 3px 10px;
+        border-radius: 20px;
+    }
+
+    .doc-list { display: flex; flex-direction: column; gap: 10px; }
 </style>
 
 <div class="container py-5">
     <div class="premium-card p-4 p-md-5">
+
         <div class="d-flex justify-content-between align-items-center mb-5">
-            <a asp-action="Index" class="btn btn-white shadow-sm rounded-pill px-4 border">
+            <a asp-action="Index"
+               class="btn btn-white shadow-sm rounded-pill px-4 border">
                 <i class="bi bi-arrow-left me-2"></i>Dashboard
             </a>
-            <div class="status-badge @(Model.LockoutEnd > DateTime.Now ? "bg-danger bg-opacity-10 text-danger" : "bg-success bg-opacity-10 text-success")">
-                @(Model.LockoutEnd > DateTime.Now ? "Compte Suspendu" : "Compte Actif")
+            <div class="d-flex gap-2">
+                <div class="status-badge @(isSuspended
+                    ? "bg-danger bg-opacity-10 text-danger"
+                    : "bg-success bg-opacity-10 text-success")">
+                        @if (isSuspended)
+                        {
+                            var joursRestants = Model.SuspendedAt.HasValue
+                                ? 30 - (DateTime.UtcNow - Model.SuspendedAt.Value).Days
+                                : 30;
+                            joursRestants = Math.Max(0, joursRestants); // ne pas afficher négatif
+
+                            <div class="status-badge bg-danger bg-opacity-10 text-danger">
+                                <i class="bi bi-lock-fill me-1"></i>Compte Suspendu
+                            </div>
+                            <div class="status-badge bg-warning bg-opacity-10 text-warning">
+                                <i class="bi bi-hourglass-split me-1"></i>
+                                Suppression dans @joursRestants jour(s)
+                            </div>
+                        }
+                        else
+                        {
+                            <div class="status-badge bg-success bg-opacity-10 text-success">
+                                <i class="bi bi-check-circle-fill me-1"></i>Compte Actif
+                            </div>
+                        }
+                </div>
+                @if (isProvider)
+                {
+                    <div class="status-badge bg-primary bg-opacity-10 text-primary">
+                        Prestataire
+                    </div>
+                }
             </div>
         </div>
 
         <div class="row g-5">
-            <div class="col-lg-4 text-center border-md-end border-white">
+
+            <div class="col-lg-4 text-center">
                 <div class="avatar-detail">
-                    @if(!string.IsNullOrEmpty(Model.FullName)) {
+                    @if (!string.IsNullOrEmpty(Model.ImageUrl)
+                         && Model.ImageUrl != "/images/default-avatar.png")
+                    {
+                        <img src="@Model.ImageUrl" alt="@Model.FullName">
+                    }
+                    else if (!string.IsNullOrEmpty(Model.FullName))
+                    {
                         @Model.FullName[0].ToString().ToUpper()
-                    } else {
+                    }
+                    else
+                    {
                         <i class="bi bi-person"></i>
                     }
                 </div>
+
                 <h2 class="fw-bold mb-1">@(Model.FullName ?? "Utilisateur")</h2>
-                <p class="text-primary fw-bold mb-4">@Model.Email</p>
-                
+                <p class="text-primary fw-bold mb-2">@Model.Email</p>
+
+                @if (!string.IsNullOrEmpty(Model.Phone))
+                {
+                    <p class="text-muted small mb-3">
+                        <i class="bi bi-telephone me-1"></i>@Model.Phone
+                    </p>
+                }
+
                 <div class="d-flex justify-content-center gap-2 mb-4">
-                    <span class="badge bg-dark rounded-pill px-3 py-2">ID: #@(Model.Id.ToString().Length > 8 ? Model.Id.ToString().Substring(0,8) : Model.Id.ToString())</span>
+                    <span class="badge bg-dark rounded-pill px-3 py-2">
+                        ID: #@Model.Id
+                    </span>
+                    @if (isProvider && provider!.IsVerified)
+                    {
+                        <span class="badge bg-success rounded-pill px-3 py-2">
+                            <i class="bi bi-patch-check-fill me-1"></i>Vérifié
+                        </span>
+                    }
                 </div>
+
+                @if (isProvider)
+                {
+                    <div class="bg-white rounded-4 p-3 text-start border">
+                        <div class="small text-muted mb-1">Métier</div>
+                        <div class="fw-bold">
+                            @(provider!.JobTitle ?? "Non renseigné")
+                        </div>
+                        <div class="small text-muted mt-2 mb-1">Ville</div>
+                        <div class="fw-bold">
+                            @(provider.City ?? "Non renseignée")
+                        </div>
+                        <div class="small text-muted mt-2 mb-1">Tarif</div>
+                        <div class="fw-bold text-success">
+                            @(provider.HourlyRate > 0
+                                ? provider.HourlyRate.ToString("N0") + " Ar/h"
+                                : "Non défini")
+                        </div>
+                    </div>
+                }
             </div>
 
             <div class="col-lg-8">
                 <h5 class="fw-bold mb-4 text-dark">Informations Générales</h5>
-                
+
                 <div class="row g-3">
+
                     <div class="col-md-6">
                         <div class="info-box">
-                            <span class="label-custom">Téléphone</span>
-                            <span class="fw-bold d-block text-dark">@(Model.PhoneNumber ?? "Non renseigné")</span>
+                            @{
+                                int joursActif = (DateTime.Now - Model.CreatedAt).Days;
+                                string moisCourt = Model.CreatedAt.ToString("MMM");
+                                string annee = Model.CreatedAt.Year.ToString();
+                            }
+
+                            <div style="display:flex; align-items:center; gap:8px;
+                                        padding-bottom:10px; margin-bottom:14px;
+                                        border-bottom:1px solid rgba(0,0,0,0.06);">
+                                <i class="bi bi-calendar3"
+                                style="font-size:13px; color:#94a3b8;"></i>
+                                <span class="label-custom mb-0">Inscription</span>
+                            </div>
+
+                            <div style="display:flex; align-items:center; gap:12px; margin-bottom:14px;">
+                                <div style="width:42px; height:42px; border-radius:10px;
+                                            background:#EEEDFE; flex-shrink:0;
+                                            display:flex; align-items:center; justify-content:center;">
+                                    <i class="bi bi-calendar-check-fill"
+                                    style="font-size:16px; color:#534AB7;"></i>
+                                </div>
+                                <div>
+                                    <div style="font-size:17px; font-weight:700; color:#1e293b;">
+                                        @Model.CreatedAt.ToString("dd MMMM yyyy")
+                                    </div>
+                                    <div style="font-size:12px; color:#94a3b8; margin-top:2px;">
+                                        @(joursActif == 0
+                                            ? "Inscrit aujourd'hui"
+                                            : $"Il y a {joursActif} jour{(joursActif > 1 ? "s" : "")}")
+                                    </div>
+                                </div>
+                            </div>
+
+                            <div style="display:flex; gap:8px;">
+                                <div style="flex:1; background:rgba(255,255,255,0.5);
+                                            border:1px solid rgba(255,255,255,0.7);
+                                            border-radius:12px; padding:10px 12px; text-align:center;">
+                                    <div style="font-size:18px; font-weight:700; color:#534AB7;">
+                                        @joursActif
+                                    </div>
+                                    <div style="font-size:11px; color:#94a3b8; margin-top:2px;">
+                                        Jours actif
+                                    </div>
+                                </div>
+                                <div style="flex:1; background:rgba(255,255,255,0.5);
+                                            border:1px solid rgba(255,255,255,0.7);
+                                            border-radius:12px; padding:10px 12px; text-align:center;">
+                                    <div style="font-size:18px; font-weight:700; color:#0F6E56;">
+                                        @annee
+                                    </div>
+                                    <div style="font-size:11px; color:#94a3b8; margin-top:2px;">
+                                        Année
+                                    </div>
+                                </div>
+                                <div style="flex:1; background:rgba(255,255,255,0.5);
+                                            border:1px solid rgba(255,255,255,0.7);
+                                            border-radius:12px; padding:10px 12px; text-align:center;">
+                                    <div style="font-size:18px; font-weight:700; color:#993C1D;">
+                                        @moisCourt
+                                    </div>
+                                    <div style="font-size:11px; color:#94a3b8; margin-top:2px;">
+                                        Mois
+                                    </div>
+                                </div>
+                            </div>
+
                         </div>
                     </div>
-                    <div class="col-md-6">
-                        <div class="info-box">
-                            <span class="label-custom">Localisation</span>
-                            <span class="fw-bold d-block text-dark">@(Model.Address ?? "Non renseignée")</span>
-                        </div>
-                    </div>
-                    <div class="col-md-6">
-                        <div class="info-box">
-                            <span class="label-custom">Inscription</span>
-                            <span class="fw-bold d-block text-dark">@Model.CreatedAt.ToString("dd MMMM yyyy")</span>
-                        </div>
-                    </div>
+
                     <div class="col-md-6">
                         <div class="info-box">
                             <span class="label-custom">Activité</span>
-                            <span class="fw-bold text-muted small">Donnée indisponible</span>
+                            @if (ViewBag.UserRole == "Admin")
+                            {
+                                int suspendedCount  = ViewBag.SuspendedCount  ?? 0;
+                                int verifiedCount   = ViewBag.VerifiedCount   ?? 0;
+                                int deletedReviews  = ViewBag.DeletedReviews  ?? 0;
+                                int maxAdminVal     = Math.Max(1, Math.Max(suspendedCount,
+                                                        Math.Max(verifiedCount, deletedReviews)));
+
+                                <div style="display:flex; align-items:center; gap:8px;
+                                            padding-bottom:10px; margin-bottom:14px;
+                                            border-bottom:1px solid rgba(0,0,0,0.06);">
+                                    <i class="bi bi-bar-chart-line" style="font-size:13px; color:#94a3b8;"></i>
+                                    <span class="label-custom mb-0">Activité administrative</span>
+                                </div>
+
+                                <div style="display:flex; align-items:center; gap:14px; margin-bottom:16px;">
+                                    <div style="width:38px; height:38px; border-radius:10px;
+                                                background:#FEE2E2; flex-shrink:0;
+                                                display:flex; align-items:center; justify-content:center;">
+                                        <i class="bi bi-slash-circle-fill" style="font-size:14px; color:#DC2626;"></i>
+                                    </div>
+                                    <div style="flex:1; min-width:0;">
+                                        <div style="display:flex; justify-content:space-between;
+                                                    align-items:baseline; margin-bottom:5px;">
+                                            <span style="font-size:13px; color:#64748b;">Comptes suspendus</span>
+                                            <span style="font-size:18px; font-weight:700; color:#DC2626;">
+                                                @suspendedCount
+                                            </span>
+                                        </div>
+                                        <div style="height:4px; background:#f1f5f9; border-radius:2px; overflow:hidden;">
+                                            <div style="width:@(suspendedCount * 100 / maxAdminVal)%;
+                                                        height:100%; background:#F87171; border-radius:2px;"></div>
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <div style="display:flex; align-items:center; gap:14px; margin-bottom:16px;">
+                                    <div style="width:38px; height:38px; border-radius:10px;
+                                                background:#D1FAE5; flex-shrink:0;
+                                                display:flex; align-items:center; justify-content:center;">
+                                        <i class="bi bi-patch-check-fill" style="font-size:14px; color:#059669;"></i>
+                                    </div>
+                                    <div style="flex:1; min-width:0;">
+                                        <div style="display:flex; justify-content:space-between;
+                                                    align-items:baseline; margin-bottom:5px;">
+                                            <span style="font-size:13px; color:#64748b;">Comptes validés</span>
+                                            <span style="font-size:18px; font-weight:700; color:#059669;">
+                                                @verifiedCount
+                                            </span>
+                                        </div>
+                                        <div style="height:4px; background:#f1f5f9; border-radius:2px; overflow:hidden;">
+                                            <div style="width:@(verifiedCount * 100 / maxAdminVal)%;
+                                                        height:100%; background:#34D399; border-radius:2px;"></div>
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <div style="display:flex; align-items:center; gap:14px;">
+                                    <div style="width:38px; height:38px; border-radius:10px;
+                                                background:#FEF3C7; flex-shrink:0;
+                                                display:flex; align-items:center; justify-content:center;">
+                                        <i class="bi bi-chat-left-x-fill" style="font-size:14px; color:#D97706;"></i>
+                                    </div>
+                                    <div style="flex:1; min-width:0;">
+                                        <div style="display:flex; justify-content:space-between;
+                                                    align-items:baseline; margin-bottom:5px;">
+                                            <span style="font-size:13px; color:#64748b;">Avis supprimés</span>
+                                            <span style="font-size:18px; font-weight:700; color:#D97706;">
+                                                @deletedReviews
+                                            </span>
+                                        </div>
+                                        <div style="height:4px; background:#f1f5f9; border-radius:2px; overflow:hidden;">
+                                            <div style="width:@(deletedReviews * 100 / maxAdminVal)%;
+                                                        height:100%; background:#FCD34D; border-radius:2px;"></div>
+                                        </div>
+                                    </div>
+                                </div>
+                            }
+                            else if (isProvider)
+                            {
+                                <div style="display: flex; flex-direction: column; gap: 14px;">
+
+                                    <div style="display: flex; align-items: center; gap: 10px;
+                                                padding-bottom: 10px;
+                                                border-bottom: 1px solid rgba(0,0,0,0.06);">
+                                        <i class="bi bi-bar-chart-line"
+                                        style="font-size:14px; color:#94a3b8;"></i>
+                                        <span class="label-custom mb-0">Activité du prestataire</span>
+                                    </div>
+
+                                    @{
+                                        int totalReviews   = provider!.Reviews?.Count   ?? 0;
+                                        int totalBookings  = provider.Bookings?.Count   ?? 0;
+                                        int totalPortfolio = provider.PortfolioItems?.Count ?? 0;
+                                        int maxVal = Math.Max(1, Math.Max(totalReviews,
+                                                            Math.Max(totalBookings, totalPortfolio)));
+                                    }
+
+                                    <div style="display: flex; align-items: center; gap: 14px;">
+                                        <div style="width:38px; height:38px; border-radius:10px;
+                                                    background:#FAEEDA; flex-shrink:0;
+                                                    display:flex; align-items:center; justify-content:center;">
+                                            <i class="bi bi-star-fill" style="font-size:14px; color:#BA7517;"></i>
+                                        </div>
+                                        <div style="flex:1; min-width:0;">
+                                            <div style="display:flex; justify-content:space-between;
+                                                        align-items:baseline; margin-bottom:5px;">
+                                                <span style="font-size:13px; color:#64748b;">Avis reçus</span>
+                                                <span style="font-size:18px; font-weight:700; color:#BA7517;">
+                                                    @totalReviews
+                                                </span>
+                                            </div>
+                                            <div style="height:4px; background:#f1f5f9;
+                                                        border-radius:2px; overflow:hidden;">
+                                                <div style="width:@(totalReviews * 100 / maxVal)%;
+                                                            height:100%; background:#EF9F27;
+                                                            border-radius:2px;"></div>
+                                            </div>
+                                        </div>
+                                    </div>
+
+                                    <div style="display: flex; align-items: center; gap: 14px;">
+                                        <div style="width:38px; height:38px; border-radius:10px;
+                                                    background:#E6F1FB; flex-shrink:0;
+                                                    display:flex; align-items:center; justify-content:center;">
+                                            <i class="bi bi-briefcase-fill" style="font-size:14px; color:#185FA5;"></i>
+                                        </div>
+                                        <div style="flex:1; min-width:0;">
+                                            <div style="display:flex; justify-content:space-between;
+                                                        align-items:baseline; margin-bottom:5px;">
+                                                <span style="font-size:13px; color:#64748b;">Missions</span>
+                                                <span style="font-size:18px; font-weight:700; color:#185FA5;">
+                                                    @totalBookings
+                                                </span>
+                                            </div>
+                                            <div style="height:4px; background:#f1f5f9;
+                                                        border-radius:2px; overflow:hidden;">
+                                                <div style="width:@(totalBookings * 100 / maxVal)%;
+                                                            height:100%; background:#378ADD;
+                                                            border-radius:2px;"></div>
+                                            </div>
+                                        </div>
+                                    </div>
+
+                                    <div style="display: flex; align-items: center; gap: 14px;">
+                                        <div style="width:38px; height:38px; border-radius:10px;
+                                                    background:#EAF3DE; flex-shrink:0;
+                                                    display:flex; align-items:center; justify-content:center;">
+                                            <i class="bi bi-grid-fill" style="font-size:14px; color:#3B6D11;"></i>
+                                        </div>
+                                        <div style="flex:1; min-width:0;">
+                                            <div style="display:flex; justify-content:space-between;
+                                                        align-items:baseline; margin-bottom:5px;">
+                                                <span style="font-size:13px; color:#64748b;">Portfolio</span>
+                                                <span style="font-size:18px; font-weight:700; color:#3B6D11;">
+                                                    @totalPortfolio
+                                                </span>
+                                            </div>
+                                            <div style="height:4px; background:#f1f5f9;
+                                                        border-radius:2px; overflow:hidden;">
+                                                <div style="width:@(totalPortfolio * 100 / maxVal)%;
+                                                            height:100%; background:#639922;
+                                                            border-radius:2px;"></div>
+                                            </div>
+                                        </div>
+                                    </div>
+
+                                </div>
+                            }
+                            else
+                            {
+                                
+                                var bookings      = ViewBag.ClientBookings as List<MadaServices.Models.Booking>
+                                                    ?? new List<MadaServices.Models.Booking>();
+                                int bookingsTotal = ViewBag.ClientBookingsTotal ?? 0;
+
+                                string StatusBg(string s) => s switch {
+                                    "Accepted"  => "#d1fae5",
+                                    "Pending"   => "#fef3c7",
+                                    "Rejected"  => "#fee2e2",
+                                    "Completed" => "#e0f2fe",
+                                    _           => "#f1f5f9"
+                                };
+                                string StatusColor(string s) => s switch {
+                                    "Accepted"  => "#065f46",
+                                    "Pending"   => "#92400e",
+                                    "Rejected"  => "#991b1b",
+                                    "Completed" => "#0369a1",
+                                    _           => "#64748b"
+                                };
+                                string StatusIcon(string s) => s switch {
+                                    "Accepted"  => "bi-check-circle-fill",
+                                    "Pending"   => "bi-clock-fill",
+                                    "Rejected"  => "bi-x-circle-fill",
+                                    "Completed" => "bi-flag-fill",
+                                    _           => "bi-circle"
+                                };
+                                string StatusLabel(string s) => s switch {
+                                    "Accepted"  => "Accepté",
+                                    "Pending"   => "En attente",
+                                    "Rejected"  => "Refusé",
+                                    "Completed" => "Terminé",
+                                    _           => s
+                                };
+                                
+
+                                <div style="display:flex; align-items:center; gap:8px;
+                                            padding-bottom:10px; margin-bottom:14px;
+                                            border-bottom:1px solid rgba(0,0,0,0.06);">
+                                    <i class="bi bi-calendar2-check" style="font-size:13px; color:#94a3b8;"></i>
+                                    <span class="label-custom mb-0">Activité — Réservations</span>
+                                    @if (bookingsTotal > 0)
+                                    {
+                                        <span style="margin-left:auto; font-size:0.7rem; font-weight:700;
+                                                    padding:2px 9px; border-radius:20px;
+                                                    background:#eef2ff; color:#4f46e5;">
+                                            @bookingsTotal au total
+                                        </span>
+                                    }
+                                </div>
+
+                                @if (bookingsTotal == 0)
+                                {
+                                    <div style="text-align:center; padding:16px 0;">
+                                        <i class="bi bi-calendar-x"
+                                        style="font-size:2rem; color:#cbd5e1; display:block; margin-bottom:8px;"></i>
+                                        <span style="font-size:0.8rem; color:#94a3b8;">
+                                            Aucune réservation pour le moment.
+                                        </span>
+                                    </div>
+                                }
+                                else
+                                {
+                                    <div style="display:flex; flex-direction:column; gap:8px;">
+                                        @foreach (var b in bookings)
+                                        {
+                                            string bg    = StatusBg(b.Status);
+                                            string color = StatusColor(b.Status);
+                                            string icon  = StatusIcon(b.Status);
+                                            string lbl   = StatusLabel(b.Status);
+
+                                            <div style="display:flex; align-items:center; gap:10px;
+                                                        background:rgba(255,255,255,0.5);
+                                                        border:1px solid rgba(0,0,0,0.05);
+                                                        border-radius:12px; padding:10px 12px;">
+
+                                                <div style="width:34px; height:34px; border-radius:9px; flex-shrink:0;
+                                                            background:#eef2ff; display:flex;
+                                                            align-items:center; justify-content:center;">
+                                                    <i class="bi bi-tools" style="font-size:13px; color:#4f46e5;"></i>
+                                                </div>
+
+                                                <div style="flex:1; min-width:0;">
+                                                    <div style="font-size:0.82rem; font-weight:700; color:#1e293b;
+                                                                white-space:nowrap; overflow:hidden; text-overflow:ellipsis;">
+                                                        @b.ServiceName
+                                                    </div>
+                                                    <div style="font-size:0.7rem; color:#94a3b8; margin-top:1px;">
+                                                        @b.CreatedAt.ToString("dd MMM yyyy")
+                                                        &nbsp;·&nbsp;
+                                                        <span style="font-weight:700; color:#4f46e5;">
+                                                            @b.TotalPrice.ToString("N0") Ar
+                                                        </span>
+                                                    </div>
+                                                </div>
+
+                                                <span style="font-size:0.68rem; font-weight:700; padding:3px 9px;
+                                                            border-radius:20px; white-space:nowrap; flex-shrink:0;
+                                                            background:@bg; color:@color;">
+                                                    <i class="bi @icon me-1"></i>@lbl
+                                                </span>
+
+                                            </div>
+                                        }
+                                    </div>
+
+                                    @if (bookingsTotal > 5)
+                                    {
+                                        <div style="text-align:center; margin-top:10px;">
+                                            <span style="font-size:0.72rem; color:#94a3b8;">
+                                                Affichage des 5 dernières sur @bookingsTotal au total
+                                            </span>
+                                        </div>
+                                    }
+                                }
+                            }
                         </div>
                     </div>
-                </div>
 
-                <div class="mt-5 pt-4 border-top border-white">
-                    <h5 class="fw-bold mb-2">Actions Administratives</h5>
-                    <p class="text-muted small mb-4">
-                        La suspension est réversible. Elle empêche l'accès immédiat à tous les services.
-                    </p>
-
-                    <form asp-action="ToggleUserStatus" asp-route-id="@Model.Id" method="post">
-                        @if (Model.LockoutEnd > DateTime.Now)
+                    <div class="col-12">
+                        <div class="col-12">
+                        @if (ViewBag.UserRole == "Admin")
                         {
-                            <button type="submit" class="btn btn-grad btn-grad-success w-100">
-                                <i class="bi bi-check2-circle me-2"></i>Lever la suspension
-                            </button>
+
+                        }
+                        else if (isProvider)
+                        {
+                            <div class="info-box">
+                                <div class="doc-header-bar">
+                                    <div class="doc-header-left">
+                                        <i class="bi bi-file-earmark-check-fill"></i>
+                                        <span class="label-custom mb-0">Documents de vérification</span>
+                                    </div>
+                                    @{
+                                        // Compter combien de documents ont été soumis
+                                        int provDocCount = 0;
+                                        if (!string.IsNullOrEmpty(provider!.CinDocumentPath))       provDocCount++;
+                                        if (!string.IsNullOrEmpty(provider.CvDocumentPath))         provDocCount++;
+                                        if (!string.IsNullOrEmpty(provider.ResidenceCertPath))      provDocCount++;
+                                        if (!string.IsNullOrEmpty(provider.DiplomaDocumentPath))    provDocCount++;
+
+                                        string pCountBg    = provDocCount >= 3 ? "#d1fae5" : "#fef3c7";
+                                        string pCountColor = provDocCount >= 3 ? "#065f46" : "#92400e";
+                                    }
+                                    @if (provDocCount > 0)
+                                    {
+                                        <span class="doc-counter" style="background:@pCountBg; color:@pCountColor;">
+                                            @provDocCount / 4 soumis
+                                        </span>
+                                    }
+                                </div>
+
+                                @if (provDocCount == 0)
+                                {
+                                    <div class="doc-empty">
+                                        <i class="bi bi-file-earmark-x"></i>
+                                        <span>Aucun document soumis par ce prestataire.</span>
+                                    </div>
+                                }
+                                else
+                                {
+                                    // ── Définition des 4 slots ─────────────────────────────────
+                                    var provDocSlots = new[]
+                                    {
+                                        new {
+                                            Label    = "Carte d'Identité (CIN)",
+                                            Icon     = "bi-person-vcard-fill",
+                                            Color    = "#4f46e5",
+                                            Bg       = "#eef2ff",
+                                            Path     = provider!.CinDocumentPath,
+                                            DocType  = "cin",
+                                            Required = true
+                                        },
+                                        new {
+                                            Label    = "CV (Curriculum Vitae)",
+                                            Icon     = "bi-file-earmark-text-fill",
+                                            Color    = "#0891b2",
+                                            Bg       = "#ecfeff",
+                                            Path     = provider.CvDocumentPath,
+                                            DocType  = "cv",
+                                            Required = true
+                                        },
+                                        new {
+                                            Label    = "Certificat de Résidence",
+                                            Icon     = "bi-house-fill",
+                                            Color    = "#16a34a",
+                                            Bg       = "#f0fdf4",
+                                            Path     = provider.ResidenceCertPath,
+                                            DocType  = "residence",
+                                            Required = true
+                                        },
+                                        new {
+                                            Label    = "Diplôme",
+                                            Icon     = "bi-award-fill",
+                                            Color    = "#d97706",
+                                            Bg       = "#fffbeb",
+                                            Path     = provider.DiplomaDocumentPath,
+                                            DocType  = "diplome",
+                                            Required = false
+                                        }
+                                    };
+
+                                    // Statut global du dossier
+                                    string provStatusBg, provStatusColor, provStatusIcon, provStatusLabel;
+                                    if (provider.VerificationStatus == "Approved")
+                                    {
+                                        provStatusBg = "#d1fae5"; provStatusColor = "#065f46";
+                                        provStatusIcon = "bi-check-circle-fill"; provStatusLabel = "Approuvé";
+                                    }
+                                    else if (provider.VerificationStatus == "Rejected")
+                                    {
+                                        provStatusBg = "#fee2e2"; provStatusColor = "#991b1b";
+                                        provStatusIcon = "bi-x-circle-fill"; provStatusLabel = "Refusé";
+                                    }
+                                    else
+                                    {
+                                        provStatusBg = "#fef3c7"; provStatusColor = "#92400e";
+                                        provStatusIcon = "bi-clock-fill"; provStatusLabel = "En attente";
+                                    }
+
+                                    <div class="doc-list">
+                                        @foreach (var slot in provDocSlots)
+                                        {
+                                            <div class="doc-row">
+                                                <div class="doc-row-header">
+
+                                                    <div class="doc-type-icon" style="background:@slot.Bg;">
+                                                        <i class="bi @slot.Icon" style="color:@slot.Color;"></i>
+                                                    </div>
+
+                                                    <div class="doc-info">
+                                                        <div class="doc-info-name">
+                                                            @slot.Label
+                                                            @if (!slot.Required)
+                                                            {
+                                                                <span class="badge bg-secondary rounded-pill ms-1"
+                                                                    style="font-size:0.6rem; font-weight:600;">
+                                                                    Facultatif
+                                                                </span>
+                                                            }
+                                                        </div>
+                                                        <div class="doc-info-date">
+                                                            @if (!string.IsNullOrEmpty(slot.Path))
+                                                            {
+                                                                var slotExt = System.IO.Path.GetExtension(slot.Path).ToLower();
+                                                                var slotIcon = slotExt == ".pdf"
+                                                                    ? "bi-file-earmark-pdf-fill"
+                                                                    : "bi-file-earmark-image-fill";
+                                                                var slotColor = slotExt == ".pdf" ? "#dc2626" : "#0891b2";
+                                                                <i class="bi @slotIcon"
+                                                                style="font-size:11px; color:@slotColor;"></i>
+                                                                <span>Fichier soumis</span>
+                                                            }
+                                                            else
+                                                            {
+                                                                <span style="color:#94a3b8;">Non soumis</span>
+                                                            }
+                                                        </div>
+                                                    </div>
+
+                                                    @if (!string.IsNullOrEmpty(slot.Path))
+                                                    {
+                                                        <span class="doc-status-badge"
+                                                            style="background:@provStatusBg; color:@provStatusColor;">
+                                                            <i class="bi @provStatusIcon me-1"></i>@provStatusLabel
+                                                        </span>
+
+                                                        <div class="doc-actions">
+                                                            <a asp-action="ViewDocument"
+                                                            asp-route-id="@provider.Id"
+                                                            asp-route-docType="@slot.DocType"
+                                                            asp-route-download="false"
+                                                            target="_blank"
+                                                            class="btn btn-sm btn-primary rounded-pill px-3 doc-action-btn">
+                                                                <i class="bi bi-eye me-1"></i>Voir
+                                                            </a>
+                                                            <a asp-action="ViewDocument"
+                                                            asp-route-id="@provider.Id"
+                                                            asp-route-docType="@slot.DocType"
+                                                            asp-route-download="true"
+                                                            class="btn btn-sm btn-outline-secondary rounded-pill px-3 doc-action-btn">
+                                                                <i class="bi bi-download"></i>
+                                                            </a>
+                                                        </div>
+                                                    }
+                                                    else
+                                                    {
+                                                        <span class="doc-status-badge"
+                                                            style="background:#f1f5f9; color:#94a3b8;">
+                                                            <i class="bi bi-dash-circle me-1"></i>Absent
+                                                        </span>
+                                                    }
+
+                                                </div>
+                                            </div>
+                                        }
+                                    </div>
+
+                                    // ── Boutons globaux Valider / Rejeter / Révoquer ───────────
+                                    @if (provDocCount >= 3) // Au moins CIN + CV + Résidence
+                                    {
+                                        @if (provider.VerificationStatus == "Pending"
+                                        || provider.VerificationStatus == "Rejected")
+                                        {
+                                            <div class="doc-validate-bar mt-3">
+                                                <form asp-action="VerifyProvider"
+                                                    asp-route-id="@provider.Id"
+                                                    method="post" style="flex:1;">
+                                                    @Html.AntiForgeryToken()
+                                                    <button type="submit"
+                                                            class="btn btn-success btn-sm w-100 rounded-pill fw-bold doc-action-btn">
+                                                        <i class="bi bi-check-circle me-1"></i>Valider le dossier
+                                                    </button>
+                                                </form>
+                                                <form asp-action="RejectProvider"
+                                                    asp-route-id="@provider.Id"
+                                                    method="post" style="flex:1;">
+                                                    @Html.AntiForgeryToken()
+                                                    <button type="submit"
+                                                            class="btn btn-outline-danger btn-sm w-100 rounded-pill fw-bold doc-action-btn"
+                                                            onclick="return confirm('Rejeter ce dossier ?')">
+                                                        <i class="bi bi-x-circle me-1"></i>Rejeter le dossier
+                                                    </button>
+                                                </form>
+                                            </div>
+                                        }
+
+                                        @if (provider.VerificationStatus == "Approved")
+                                        {
+                                            <div class="doc-revoke-bar mt-2">
+                                                <form asp-action="RejectProvider"
+                                                    asp-route-id="@provider.Id"
+                                                    method="post">
+                                                    @Html.AntiForgeryToken()
+                                                    <button type="submit"
+                                                            class="btn btn-outline-danger btn-sm rounded-pill fw-bold doc-revoke-btn"
+                                                            onclick="return confirm('Révoquer la validation ?')">
+                                                        <i class="bi bi-arrow-counterclockwise me-1"></i>
+                                                        Révoquer la validation
+                                                    </button>
+                                                </form>
+                                            </div>
+                                        }
+                                    }
+                                    else
+                                    {
+                                        <div class="mt-3 p-3 rounded-3"
+                                            style="background:#fef9c3; border:1px solid #fde047;">
+                                            <small style="color:#854d0e;">
+                                                <i class="bi bi-exclamation-triangle-fill me-1"></i>
+                                                Les 3 documents obligatoires (CIN, CV, Résidence) ne sont pas tous soumis.
+                                                La validation sera disponible une fois les 3 documents reçus.
+                                            </small>
+                                        </div>
+                                    }
+                                }
+                            </div>
                         }
                         else
                         {
-                            <button type="submit" class="btn btn-grad btn-grad-danger w-100" 
-                                    onclick="return confirm('Suspendre cet utilisateur ?')">
-                                <i class="bi bi-slash-circle me-2"></i>Suspendre l'accès
-                            </button>
+                            
+                                var clientDocs = ViewBag.ClientDocuments as List<MadaServices.Models.ClientDocument>
+                                                ?? new List<MadaServices.Models.ClientDocument>();
+
+                            var docMeta = new Dictionary<string, (string Label, string Icon, string IconColor, string BgColor)>
+                            {
+                                ["CIN"]           = ("Carte d'identité (CIN)",       "bi-person-vcard-fill",         "#4f46e5", "#eef2ff"),
+                                ["CertResidence"] = ("Certificat de résidence",      "bi-house-fill",                "#16a34a", "#f0fdf4"),
+                                ["CertTravail"]   = ("Certificat de travail",        "bi-briefcase-fill",            "#d97706", "#fffbeb"),
+                                ["CV"]            = ("CV / Curriculum Vitae",        "bi-file-earmark-person-fill",  "#e11d48", "#fff1f2"),
+                            };
+
+                            int approvedCount = clientDocs.Count(d => d.Status == "Approved");
+                            int totalCount    = clientDocs.Count;
+
+                            string counterBg    = approvedCount == totalCount ? "#d1fae5" : "#fef3c7";
+                            string counterColor = approvedCount == totalCount ? "#065f46" : "#92400e";
+                            
+
+                            <div class="info-box">
+
+                                <div class="doc-header-bar">
+                                    <div class="doc-header-left">
+                                        <i class="bi bi-file-earmark-check-fill"></i>
+                                        <span class="label-custom mb-0">Documents de vérification</span>
+                                    </div>
+                                    @if (totalCount > 0)
+                                    {
+                                        <span class="doc-counter" style="background:@counterBg; color:@counterColor;">
+                                            @approvedCount / @totalCount approuvé(s)
+                                        </span>
+                                    }
+                                </div>
+
+                                @if (totalCount == 0)
+                                {
+                                    <div class="doc-empty">
+                                        <i class="bi bi-file-earmark-x"></i>
+                                        <span>Ce client n'a soumis aucun document pour le moment.</span>
+                                    </div>
+                                }
+                                else
+                                {
+                                    <div class="doc-list">
+                                        @foreach (var doc in clientDocs)
+                                        {
+                                            string metaLabel, metaIcon, metaIconColor, metaBgColor;
+                                            if (docMeta.ContainsKey(doc.DocumentType))
+                                            {
+                                                var m = docMeta[doc.DocumentType];
+                                                metaLabel     = m.Label;
+                                                metaIcon      = m.Icon;
+                                                metaIconColor = m.IconColor;
+                                                metaBgColor   = m.BgColor;
+                                            }
+                                            else
+                                            {
+                                                metaLabel     = "Document";
+                                                metaIcon      = "bi-file-earmark-fill";
+                                                metaIconColor = "#64748b";
+                                                metaBgColor   = "#f1f5f9";
+                                            }
+
+                                            var ext       = System.IO.Path.GetExtension(doc.FilePath).ToLowerInvariant();
+                                            var fileIcon  = ext == ".pdf" ? "bi-file-earmark-pdf-fill" : "bi-file-earmark-image-fill";
+                                            var fileColor = ext == ".pdf" ? "#dc2626" : "#0891b2";
+
+                                            string statusBg, statusColor, statusIcon, statusLabel;
+                                            if (doc.Status == "Approved")
+                                            {
+                                                statusBg    = "#d1fae5"; statusColor = "#065f46";
+                                                statusIcon  = "bi-check-circle-fill"; statusLabel = "Approuvé";
+                                            }
+                                            else if (doc.Status == "Rejected")
+                                            {
+                                                statusBg    = "#fee2e2"; statusColor = "#991b1b";
+                                                statusIcon  = "bi-x-circle-fill"; statusLabel = "Refusé";
+                                            }
+                                            else
+                                            {
+                                                statusBg    = "#fef3c7"; statusColor = "#92400e";
+                                                statusIcon  = "bi-clock-fill"; statusLabel = "En attente";
+                                            }
+
+                                            <div class="doc-row">
+
+                                                <div class="doc-row-header">
+
+                                                    <div class="doc-type-icon" style="background:@metaBgColor;">
+                                                        <i class="bi @metaIcon" style="color:@metaIconColor;"></i>
+                                                    </div>
+
+                                                    <div class="doc-info">
+                                                        <div class="doc-info-name">@metaLabel</div>
+                                                        <div class="doc-info-date">
+                                                            <i class="bi @fileIcon" style="font-size:11px; color:@fileColor;"></i>
+                                                            <span>Soumis le @doc.UploadedAt.ToString("dd/MM/yyyy à HH:mm")</span>
+                                                        </div>
+                                                    </div>
+
+                                                    <span class="doc-status-badge" style="background:@statusBg; color:@statusColor;">
+                                                        <i class="bi @statusIcon me-1"></i>@statusLabel
+                                                    </span>
+
+                                                    <div class="doc-actions">
+                                                        <a asp-action="ViewClientDocument"
+                                                        asp-route-id="@doc.Id"
+                                                        asp-route-download="false"
+                                                        target="_blank"
+                                                        class="btn btn-sm btn-primary rounded-pill px-3 doc-action-btn">
+                                                            <i class="bi bi-eye me-1"></i>Voir
+                                                        </a>
+                                                        <a asp-action="ViewClientDocument"
+                                                        asp-route-id="@doc.Id"
+                                                        asp-route-download="true"
+                                                        class="btn btn-sm btn-outline-secondary rounded-pill px-3 doc-action-btn">
+                                                            <i class="bi bi-download me-1"></i>
+                                                        </a>
+                                                    </div>
+
+                                                </div>
+
+                                                @if (doc.Status == "Pending" || doc.Status == "Rejected")
+                                                {
+                                                    <div class="doc-validate-bar">
+                                                        <form asp-action="ApproveClientDocument" asp-route-id="@doc.Id" method="post" style="flex:1;">
+                                                            @Html.AntiForgeryToken()
+                                                            <button type="submit" class="btn btn-success btn-sm w-100 rounded-pill fw-bold doc-action-btn">
+                                                                <i class="bi bi-check-circle me-1"></i>Approuver
+                                                            </button>
+                                                        </form>
+                                                        <form asp-action="RejectClientDocument" asp-route-id="@doc.Id" method="post" style="flex:1;">
+                                                            @Html.AntiForgeryToken()
+                                                            <button type="submit"
+                                                                    class="btn btn-outline-danger btn-sm w-100 rounded-pill fw-bold doc-action-btn"
+                                                                    onclick="return confirm('Rejeter ce document ?')">
+                                                                <i class="bi bi-x-circle me-1"></i>Rejeter
+                                                            </button>
+                                                        </form>
+                                                    </div>
+                                                }
+
+                                                @if (doc.Status == "Approved")
+                                                {
+                                                    <div class="doc-revoke-bar">
+                                                        <form asp-action="RejectClientDocument" asp-route-id="@doc.Id" method="post">
+                                                            @Html.AntiForgeryToken()
+                                                            <button type="submit"
+                                                                    class="btn btn-outline-danger btn-sm rounded-pill fw-bold doc-revoke-btn"
+                                                                    onclick="return confirm('Révoquer l\'approbation de ce document ?')">
+                                                                <i class="bi bi-arrow-counterclockwise me-1"></i>
+                                                                Révoquer l'approbation
+                                                            </button>
+                                                        </form>
+                                                    </div>
+                                                }
+
+                                            </div>
+                                        }
+                                    </div>
+                                }
+
+                            </div>
                         }
-                    </form>
+                    </div>
+
                 </div>
+
+                <div class="mt-5 pt-4 border-top border-white">
+                    @if (ViewBag.UserRole == "Admin")
+                    {
+                        <h5 class="fw-bold mb-2">Mon Profil</h5>
+                        <p class="text-muted small mb-4">
+                            Modifiez votre photo, email, nom ou mot de passe.
+                        </p>
+                        <button type="button"
+                                class="btn w-100 rounded-pill fw-bold py-3"
+                                style="background: linear-gradient(135deg, #6366f1 0%, #4338ca 100%);
+                                    color: white; border: none;"
+                                data-bs-toggle="modal"
+                                data-bs-target="#modalEditProfile">
+                            <i class="bi bi-pencil-square me-2"></i>Modifier le profil
+                        </button>
+                    }
+                    else
+                    {
+                        <h5 class="fw-bold mb-2">Actions Administratives</h5>
+                        <p class="text-muted small mb-4">
+                            La suspension est réversible.
+                            Elle empêche l'accès immédiat à tous les services.
+                        </p>
+                        <form asp-action="ToggleUserStatus"
+                            asp-route-id="@Model.Id"
+                            method="post">
+                            @Html.AntiForgeryToken()
+                            @if (isSuspended)
+                            {
+                                <button type="submit"
+                                        class="btn btn-grad btn-grad-success w-100">
+                                    <i class="bi bi-check2-circle me-2"></i>
+                                    Lever la suspension
+                                </button>
+                            }
+                            else
+                            {
+                                <button type="submit"
+                                        class="btn btn-grad btn-grad-danger w-100"
+                                        onclick="return confirm('Suspendre cet utilisateur ?')">
+                                    <i class="bi bi-slash-circle me-2"></i>
+                                    Suspendre l'accès
+                                </button>
+                            }
+                        </form>
+                    }
+                </div>
+
             </div>
         </div>
     </div>
 </div>
+
+@if (ViewBag.UserRole == "Admin") {
+    <style>
+        /* Styles personnalisés pour le modal Profil */
+        .profile-modal-content {
+            border: none;
+            border-radius: 1rem;
+            box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04);
+        }
+        .profile-modal-header {
+            background: linear-gradient(135deg, #4f46e5 0%, #3730a3 100%);
+            border-bottom: 0;
+            padding: 1.5rem 1.5rem 1rem;
+        }
+        .label-custom {
+            font-size: 0.75rem;
+            font-weight: 600;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            color: #64748b;
+            margin-bottom: 0.5rem;
+            display: block;
+        }
+        .input-group-text-custom {
+            background-color: #f8fafc;
+            border-color: #e2e8f0;
+            color: #94a3b8;
+        }
+        .form-control-custom {
+            border-color: #e2e8f0;
+            color: #334155;
+            padding: 0.6rem 0.75rem;
+        }
+        .form-control-custom:focus {
+            border-color: #4f46e5;
+            box-shadow: none;
+        }
+        /* Gérer la bordure au focus pour l'input group */
+        .input-group:focus-within .input-group-text-custom,
+        .input-group:focus-within .form-control-custom {
+            border-color: #4f46e5;
+        }
+        .avatar-upload-box {
+            width: 120px;
+            height: 120px;
+            border-radius: 50%;
+            margin: 0 auto 15px;
+            background: linear-gradient(135deg, #e0e7ff, #c7d2fe);
+            color: #4f46e5;
+            font-weight: 700;
+            font-size: 3rem;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            box-shadow: 0 10px 25px rgba(79, 70, 229, 0.15);
+            cursor: pointer;
+            overflow: hidden;
+            transition: all 0.3s ease;
+            position: relative;
+            border: 4px solid #ffffff;
+        }
+        .avatar-upload-box:hover {
+            box-shadow: 0 15px 30px rgba(79, 70, 229, 0.25);
+            transform: translateY(-2px);
+        }
+        .avatar-overlay {
+            position: absolute;
+            inset: 0;
+            background: rgba(15, 23, 42, 0.5);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            opacity: 0;
+            transition: opacity 0.3s ease;
+        }
+        .avatar-upload-box:hover .avatar-overlay {
+            opacity: 1;
+        }
+        .btn-primary-custom {
+            background: linear-gradient(135deg, #4f46e5 0%, #3730a3 100%);
+            border: none;
+            transition: all 0.2s ease;
+        }
+        .btn-primary-custom:hover {
+            box-shadow: 0 8px 15px rgba(79, 70, 229, 0.3);
+            transform: translateY(-1px);
+        }
+    </style>
+
+    <div class="modal fade" id="modalEditProfile" tabindex="-1">
+        <div class="modal-dialog modal-dialog-centered modal-lg">
+            <div class="modal-content profile-modal-content">
+
+                <form asp-action="EditProfile" asp-route-id="@Model.Id" method="post" enctype="multipart/form-data">
+                    @Html.AntiForgeryToken()
+
+                    <div class="modal-body px-4 py-4">
+                        <div class="row g-4 align-items-start">
+
+                            <div class="col-md-4 text-center border-end-md border-light">
+                                <label class="label-custom mb-3">Photo de profil</label>
+
+                                <div class="avatar-upload-box" id="avatarPreviewWrapper" onclick="document.getElementById('photoInput').click()">
+                                    @if (!string.IsNullOrEmpty(Model.ImageUrl) && Model.ImageUrl != "/images/default-avatar.png")
+                                    {
+                                        <img id="avatarPreviewImg" src="@Model.ImageUrl" alt="Avatar" style="width:100%; height:100%; object-fit:cover;">
+                                    }
+                                    else
+                                    {
+                                        <span id="avatarPreviewInitial">@(Model.FullName?[0].ToString().ToUpper() ?? "A")</span>
+                                        <img id="avatarPreviewImg" src="" alt="Avatar" style="width:100%; height:100%; object-fit:cover; display:none;">
+                                    }
+                                    
+                                    <div class="avatar-overlay" id="avatarOverlay">
+                                        <i class="bi bi-camera-fill text-white fs-3"></i>
+                                    </div>
+                                </div>
+
+                                <input type="file" id="photoInput" name="photo" accept="image/png, image/jpeg" class="d-none">
+
+                                <p class="text-muted mt-3 mb-2" style="font-size:0.75rem; line-height:1.5;">
+                                    Cliquez sur l'image pour modifier.<br>
+                                    <span class="text-dark fw-semibold">JPG, PNG — Max 5 Mo</span>
+                                </p>
+
+                                <div id="selectedFileName" class="badge bg-success bg-opacity-10 text-success rounded-pill px-3 py-2 d-none w-100 text-truncate" style="font-size:0.75rem;">
+                                    <i class="bi bi-check-circle-fill me-1"></i>
+                                    <span></span>
+                                </div>
+                            </div>
+
+                            <div class="col-md-8 ps-md-4">
+                                
+                                <div class="mb-4">
+                                    <label class="label-custom">Nom complet</label>
+                                    <div class="input-group">
+                                        <span class="input-group-text input-group-text-custom border-end-0 rounded-start-3">
+                                            <i class="bi bi-person"></i>
+                                        </span>
+                                        <input type="text" name="fullName" value="@Model.FullName" class="form-control form-control-custom border-start-0 rounded-end-3 ps-0" placeholder="Entrez votre nom complet" required>
+                                    </div>
+                                </div>
+
+                                <div class="mb-4">
+                                    <label class="label-custom">Adresse email</label>
+                                    <div class="input-group">
+                                        <span class="input-group-text input-group-text-custom border-end-0 rounded-start-3">
+                                            <i class="bi bi-envelope"></i>
+                                        </span>
+                                        <input type="email" name="email" value="@Model.Email" class="form-control form-control-custom border-start-0 rounded-end-3 ps-0" placeholder="email@exemple.com" required>
+                                    </div>
+                                </div>
+
+                                <div class="position-relative my-4">
+                                    <hr class="text-muted opacity-25">
+                                </div>
+
+                                <div class="d-flex justify-content-between align-items-center mb-3">
+                                    <label class="label-custom mb-0">Modifier le mot de passe</label>
+                                    <small class="text-muted fst-italic" style="font-size: 0.7rem;">(Laisser vide pour ignorer)</small>
+                                </div>
+
+                                <div class="row g-3">
+                                    <div class="col-sm-6">
+                                        <div class="input-group">
+                                            <span class="input-group-text input-group-text-custom border-end-0 rounded-start-3">
+                                                <i class="bi bi-lock"></i>
+                                            </span>
+                                            <input type="password" id="newPasswordInput" name="newPassword" class="form-control form-control-custom border-x-0 ps-0" placeholder="Nouveau mdp">
+                                            <button type="button" class="input-group-text input-group-text-custom border-start-0 rounded-end-3 toggle-password" data-target="newPasswordInput" title="Afficher / masquer">
+                                                <i class="bi bi-eye"></i>
+                                            </button>
+                                        </div>
+                                    </div>
+
+                                    <div class="col-sm-6">
+                                        <div class="input-group">
+                                            <span class="input-group-text input-group-text-custom border-end-0 rounded-start-3">
+                                                <i class="bi bi-shield-lock"></i>
+                                            </span>
+                                            <input type="password" id="confirmPasswordInput" name="confirmPassword" class="form-control form-control-custom border-x-0 ps-0" placeholder="Confirmer">
+                                            <button type="button" class="input-group-text input-group-text-custom border-start-0 rounded-end-3 toggle-password" data-target="confirmPasswordInput" title="Afficher / masquer">
+                                                <i class="bi bi-eye"></i>
+                                            </button>
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <div id="passwordMatchMsg" class="mt-2 small px-2 py-1 rounded d-none" style="font-size: 0.8rem; background-color: #f8fafc;"></div>
+
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="modal-footer border-top-0 px-4 pb-4 pt-0 gap-2">
+                        <button type="button" class="btn btn-light rounded-pill px-4 fw-semibold text-secondary" data-bs-dismiss="modal">
+                            Annuler
+                        </button>
+                        <button type="submit" class="btn btn-primary-custom text-white rounded-pill px-4 fw-semibold">
+                            <i class="bi bi-check2-circle me-2"></i>Enregistrer les modifications
+                        </button>
+                    </div>
+
+                </form>
+            </div>
+        </div>
+            
+        <script>
+            document.addEventListener("DOMContentLoaded", function () {
+                // Gestion de la photo de profil
+                const photoInput = document.getElementById('photoInput');
+                if(photoInput) {
+                    photoInput.addEventListener('change', function () {
+                        const file = this.files[0];
+                        if (!file) return;
+
+                        const reader = new FileReader();
+                        reader.onload = e => {
+                            const img = document.getElementById('avatarPreviewImg');
+                            const initial = document.getElementById('avatarPreviewInitial');
+                            img.src = e.target.result;
+                            img.style.display = 'block';
+                            if (initial) initial.style.display = 'none';
+                        };
+                        reader.readAsDataURL(file);
+
+                        const badge = document.getElementById('selectedFileName');
+                        const fileNameSpan = badge.querySelector('span');
+                        fileNameSpan.textContent = file.name;
+                        fileNameSpan.title = file.name; // Tooltip pour le nom complet
+                        badge.classList.remove('d-none');
+                    });
+                }
+
+                // Toggle affichage des mots de passe
+                document.querySelectorAll('.toggle-password').forEach(btn => {
+                    btn.addEventListener('click', function () {
+                        const input = document.getElementById(this.dataset.target);
+                        const icon = this.querySelector('i');
+                        if (input.type === 'password') {
+                            input.type = 'text';
+                            icon.classList.replace('bi-eye', 'bi-eye-slash');
+                            icon.classList.add('text-primary');
+                        } else {
+                            input.type = 'password';
+                            icon.classList.replace('bi-eye-slash', 'bi-eye');
+                            icon.classList.remove('text-primary');
+                        }
+                    });
+                });
+
+                // Validation visuelle des mots de passe
+                const newPwd = document.getElementById('newPasswordInput');
+                const confPwd = document.getElementById('confirmPasswordInput');
+                const msg = document.getElementById('passwordMatchMsg');
+
+                function checkMatch() {
+                    if (!newPwd.value && !confPwd.value) {
+                        msg.classList.add('d-none');
+                        newPwd.classList.remove('is-invalid', 'is-valid');
+                        confPwd.classList.remove('is-invalid', 'is-valid');
+                        return;
+                    }
+                    
+                    msg.classList.remove('d-none');
+                    if (newPwd.value === confPwd.value) {
+                        msg.innerHTML = '<i class="bi bi-check-circle-fill text-success me-2"></i><span class="text-success fw-medium">Les mots de passe correspondent</span>';
+                        confPwd.classList.remove('is-invalid');
+                        confPwd.classList.add('is-valid');
+                    } else {
+                        msg.innerHTML = '<i class="bi bi-exclamation-triangle-fill text-danger me-2"></i><span class="text-danger fw-medium">Les mots de passe ne correspondent pas</span>';
+                        confPwd.classList.remove('is-valid');
+                        confPwd.classList.add('is-invalid');
+                    }
+                }
+
+                if(newPwd && confPwd) {
+                    newPwd.addEventListener('input', checkMatch);
+                    confPwd.addEventListener('input', checkMatch);
+                }
+            });
+        </script>
+    </div>
+}

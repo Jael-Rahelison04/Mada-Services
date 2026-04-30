@@ -10,8 +10,6 @@ namespace MadaServices.Models
     public class Provider : User
     {
         // --- Propriétés professionnelles ---
-        [Required]
-        public string JobTitle { get; set; } = string.Empty;
 
         public string City { get; set; } = string.Empty;
         public string Description { get; set; } = string.Empty;
@@ -32,14 +30,16 @@ namespace MadaServices.Models
 
         // --- Statuts et vérification ---
         public bool IsPaused { get; set; } = false;
-        public bool IsVerified { get; set; } = false;
 
         // Statuts possibles : "NotSubmitted", "Pending", "Approved", "Rejected"
         public string VerificationStatus { get; set; } = "NotSubmitted";
         public bool HasSubmittedDocs { get; set; } = false;
 
         // ✅ CORRECTION P10 : Champ pour stocker le chemin du document soumis
-        public string? VerificationDocumentPath { get; set; }
+        public string? CinDocumentPath          { get; set; }  // Obligatoire
+        public string? CvDocumentPath           { get; set; }  // Obligatoire
+        public string? ResidenceCertPath        { get; set; }  // Obligatoire
+        public string? DiplomaDocumentPath      { get; set; }  // Facultatif
 
         // URL externe optionnelle (lien vers site perso, LinkedIn, etc.)
         public string? PortfolioUrl { get; set; }

@@ -21,7 +21,7 @@ namespace MadaServices.Controllers
 
         [HttpPost]
         [ValidateAntiForgeryToken]
-        public async Task<IActionResult> Create(int providerId, int rating, string comment)
+        public async Task<IActionResult> Create(int providerId, decimal rating, string comment)
         {
             var user = await _userManager.GetUserAsync(User);
             if (user == null) return Challenge();

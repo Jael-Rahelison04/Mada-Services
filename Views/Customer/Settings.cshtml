@@ -1,195 +1,550 @@
-@model MadaServices.Models.SettingsViewModel
+@model MadaServices.Models.ViewModels.SettingsViewModel
 @{
-    ViewData["Title"] = "Mon Profil - MadaServices";
+    ViewData["Title"] = "Paramètres du compte";
+    var activeTab = TempData["ActiveTab"]?.ToString() ?? "profile";
 }
 
-<link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;600;700;800&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700&display=swap" rel="stylesheet">
 <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.1/font/bootstrap-icons.css">
 
 <style>
     :root {
-        --glass-bg: rgba(255, 255, 255, 0.95);
-        --brand-blue: #4f46e5;
-        --soft-gray: #f1f5f9;
-        --success-soft: #ecfdf5;
+        --primary: #4f46e5;
+        --primary-light: #eef2ff;
+        --primary-dark: #3730a3;
+        --surface: #ffffff;
+        --bg: #f8fafc;
+        --border: #e2e8f0;
+        --text: #0f172a;
+        --muted: #64748b;
+        --danger: #ef4444;
+        --success: #10b981;
+        --warning: #f59e0b;
     }
+    * { box-sizing: border-box; }
+    body { background: var(--bg); font-family: 'Plus Jakarta Sans', sans-serif; color: var(--text); }
 
-    body { 
-        background: linear-gradient(135deg, #f8fafc 0%, #e2e8f0 100%); 
-        font-family: 'Outfit', sans-serif; 
-        min-height: 100vh; 
+    /* ── PAGE HEADER ── */
+    .settings-header {
+        background: var(--surface);
+        border-bottom: 1px solid var(--border);
+        padding: 20px 0;
+        margin-bottom: 32px;
     }
+    .back-link {
+        display: inline-flex; align-items: center; gap: 6px;
+        color: var(--muted); font-size: 0.8rem; font-weight: 600;
+        text-decoration: none; text-transform: uppercase; letter-spacing: 0.05em;
+        transition: color 0.2s;
+    }
+    .back-link:hover { color: var(--primary); }
+    .page-title { font-size: 1.4rem; font-weight: 700; margin: 6px 0 2px; }
+    .page-subtitle { font-size: 0.85rem; color: var(--muted); }
 
-    .glass-card {
-        background: var(--glass-bg); 
-        backdrop-filter: blur(10px);
-        border-radius: 32px; 
-        border: 1px solid rgba(255, 255, 255, 0.3);
-        box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.08);
-        padding: 50px; 
-        max-width: 1000px; 
-        margin: 40px auto;
+    /* ── AVATAR SECTION ── */
+    .avatar-section {
+        display: flex; align-items: center; gap: 20px;
+        background: var(--surface); border: 1px solid var(--border);
+        border-radius: 16px; padding: 20px 24px; margin-bottom: 24px;
     }
+    .avatar-wrap { position: relative; flex-shrink: 0; }
+    .avatar-img {
+        width: 72px; height: 72px; border-radius: 18px; object-fit: cover;
+        border: 3px solid var(--border);
+    }
+    .avatar-badge {
+        position: absolute; bottom: -4px; right: -4px;
+        background: var(--primary); color: white;
+        width: 24px; height: 24px; border-radius: 8px;
+        display: flex; align-items: center; justify-content: center;
+        font-size: 0.7rem; border: 2px solid var(--bg); cursor: pointer;
+        transition: transform 0.2s;
+    }
+    .avatar-badge:hover { transform: scale(1.1); }
+    .avatar-info h6 { font-size: 1rem; font-weight: 700; margin: 0 0 4px; }
+    .avatar-info p { font-size: 0.8rem; color: var(--muted); margin: 0 0 10px; }
+    .status-badge {
+        display: inline-flex; align-items: center; gap: 5px;
+        font-size: 0.72rem; font-weight: 600; padding: 3px 10px;
+        border-radius: 20px;
+    }
+    .status-badge.pending { background: #fef3c7; color: #92400e; }
+    .status-badge.verified { background: #d1fae5; color: #065f46; }
+    .status-badge.dot { width: 6px; height: 6px; border-radius: 50%; background: currentColor; }
 
-    /* Zone Avatar */
-    .avatar-container { position: relative; width: 160px; height: 160px; margin: 0 auto 25px; }
-    
-    .avatar-main {
-        width: 160px; height: 160px; border-radius: 40px; object-fit: cover;
-        border: 6px solid white; box-shadow: 0 15px 30px rgba(0,0,0,0.1);
-        background: #e2e8f0; transition: 0.4s ease;
+    /* ── TABS ── */
+    .settings-tabs {
+        display: flex; gap: 4px;
+        background: var(--surface); border: 1px solid var(--border);
+        border-radius: 14px; padding: 6px; margin-bottom: 20px;
     }
+    .tab-btn {
+        flex: 1; display: flex; align-items: center; justify-content: center; gap: 7px;
+        padding: 10px 16px; border-radius: 10px; border: none; background: transparent;
+        font-family: 'Plus Jakarta Sans', sans-serif; font-size: 0.82rem; font-weight: 600;
+        color: var(--muted); cursor: pointer; transition: all 0.2s; white-space: nowrap;
+    }
+    .tab-btn:hover { background: var(--bg); color: var(--text); }
+    .tab-btn.active { background: var(--primary); color: white; box-shadow: 0 4px 12px rgba(79,70,229,0.25); }
+    .tab-btn i { font-size: 0.85rem; }
 
-    .btn-edit-photo {
-        position: absolute; bottom: -12px; right: -12px;
-        background: var(--brand-blue); color: white; width: 48px; height: 48px;
-        border-radius: 16px; border: 4px solid white; display: flex;
-        align-items: center; justify-content: center; cursor: pointer;
-        box-shadow: 0 8px 15px rgba(79, 70, 229, 0.3); transition: 0.3s;
-    }
-    .btn-edit-photo:hover { transform: scale(1.1) rotate(5deg); background: #3730a3; }
+    /* ── TAB PANELS ── */
+    .tab-panel { display: none; }
+    .tab-panel.active { display: block; }
 
-    /* Bouton Profil Public Spécial */
-    .btn-view-public {
-        background: white;
-        color: var(--brand-blue);
-        border: 2px solid var(--brand-blue);
-        border-radius: 14px;
-        padding: 12px;
-        font-weight: 700;
-        text-decoration: none;
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        transition: all 0.3s ease;
-        margin-top: 15px;
+    /* ── CARDS ── */
+    .settings-card {
+        background: var(--surface); border: 1px solid var(--border);
+        border-radius: 16px; padding: 24px; margin-bottom: 16px;
     }
-    .btn-view-public:hover {
-        background: var(--brand-blue);
-        color: white;
-        transform: translateY(-2px);
-        box-shadow: 0 10px 15px -3px rgba(79, 70, 229, 0.2);
+    .card-title {
+        font-size: 0.9rem; font-weight: 700; margin: 0 0 20px;
+        padding-bottom: 14px; border-bottom: 1px solid var(--border);
+        display: flex; align-items: center; gap: 8px;
     }
+    .card-title i { color: var(--primary); font-size: 1rem; }
 
-    /* Formulaire */
-    .form-label { font-weight: 700; color: #475569; font-size: 0.85rem; text-transform: uppercase; letter-spacing: 0.5px; }
-    
-    .custom-input {
-        background: var(--soft-gray); border: 2px solid transparent; border-radius: 16px;
-        padding: 14px 18px; font-weight: 500; transition: 0.3s;
+    /* ── FORM ELEMENTS ── */
+    .field-group { margin-bottom: 18px; }
+    .field-label {
+        display: block; font-size: 0.75rem; font-weight: 700;
+        color: var(--muted); text-transform: uppercase; letter-spacing: 0.05em;
+        margin-bottom: 7px;
     }
-    .custom-input:focus {
-        background: white; border-color: var(--brand-blue);
-        box-shadow: 0 0 0 4px rgba(79, 70, 229, 0.1); outline: none;
+    .field-input {
+        width: 100%; background: var(--bg); border: 1.5px solid var(--border);
+        border-radius: 11px; padding: 11px 14px; font-family: 'Plus Jakarta Sans', sans-serif;
+        font-size: 0.88rem; color: var(--text); transition: border-color 0.2s, box-shadow 0.2s;
+        outline: none;
     }
+    .field-input:focus { border-color: var(--primary); box-shadow: 0 0 0 3px rgba(79,70,229,0.1); background: white; }
+    .field-input.input-icon-right { padding-right: 42px; }
 
-    .btn-submit-profile {
-        background: var(--brand-blue); color: white; border: none; border-radius: 18px;
-        padding: 16px; font-weight: 800; width: 100%; transition: 0.3s;
-        box-shadow: 0 10px 20px -5px rgba(79, 70, 229, 0.4);
+    .input-wrap { position: relative; }
+    .input-icon-btn {
+        position: absolute; right: 12px; top: 50%; transform: translateY(-50%);
+        background: none; border: none; color: var(--muted); cursor: pointer;
+        padding: 4px; font-size: 0.9rem; transition: color 0.2s;
     }
-    .btn-submit-profile:hover { background: #3730a3; transform: translateY(-3px); }
+    .input-icon-btn:hover { color: var(--primary); }
 
-    .sidebar-info { border-right: 1px solid #e2e8f0; padding-right: 40px; }
-    #imageUpload { display: none; }
+    .field-hint { font-size: 0.75rem; color: var(--muted); margin-top: 5px; }
+
+    .row-2 { display: grid; grid-template-columns: 1fr 1fr; gap: 14px; }
+
+    /* ── PASSWORD STRENGTH ── */
+    .strength-bar {
+        display: flex; gap: 4px; margin-top: 8px;
+    }
+    .strength-seg {
+        flex: 1; height: 3px; border-radius: 2px; background: var(--border);
+        transition: background 0.3s;
+    }
+    .strength-seg.weak { background: var(--danger); }
+    .strength-seg.medium { background: var(--warning); }
+    .strength-seg.strong { background: var(--success); }
+    .strength-text { font-size: 0.73rem; margin-top: 5px; font-weight: 600; }
+
+    /* ── DOCUMENT UPLOAD ── */
+    .doc-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 14px; }
+    .doc-item {
+        border: 1.5px dashed var(--border); border-radius: 12px; padding: 16px;
+        position: relative; transition: border-color 0.2s, background 0.2s;
+        cursor: pointer;
+    }
+    .doc-item:hover { border-color: var(--primary); background: var(--primary-light); }
+    .doc-item input[type="file"] { position: absolute; inset: 0; opacity: 0; cursor: pointer; width: 100%; height: 100%; }
+    .doc-icon {
+        width: 36px; height: 36px; border-radius: 10px;
+        display: flex; align-items: center; justify-content: center;
+        font-size: 1.1rem; margin-bottom: 8px;
+    }
+    .doc-name { font-size: 0.82rem; font-weight: 700; margin: 0 0 2px; }
+    .doc-sub { font-size: 0.72rem; color: var(--muted); }
+    .doc-status {
+        display: inline-flex; align-items: center; gap: 4px;
+        font-size: 0.7rem; font-weight: 600; padding: 2px 8px; border-radius: 20px; margin-top: 6px;
+    }
+    .doc-status.none { background: #f1f5f9; color: #64748b; }
+    .doc-status.uploaded { background: #fef3c7; color: #92400e; }
+    .doc-status.approved { background: #d1fae5; color: #065f46; }
+    .doc-status.rejected { background: #fee2e2; color: #991b1b; }
+
+    /* ── SUBMIT BUTTON ── */
+    .btn-save {
+        background: var(--primary); color: white; border: none;
+        border-radius: 11px; padding: 12px 28px; font-family: 'Plus Jakarta Sans', sans-serif;
+        font-size: 0.88rem; font-weight: 700; cursor: pointer; transition: all 0.2s;
+        display: inline-flex; align-items: center; gap: 8px;
+    }
+    .btn-save:hover { background: var(--primary-dark); transform: translateY(-1px); box-shadow: 0 6px 16px rgba(79,70,229,0.25); }
+    .btn-save:active { transform: translateY(0); }
+    .btn-cancel {
+        background: var(--bg); color: var(--muted); border: 1.5px solid var(--border);
+        border-radius: 11px; padding: 12px 22px; font-family: 'Plus Jakarta Sans', sans-serif;
+        font-size: 0.88rem; font-weight: 600; cursor: pointer; transition: all 0.2s;
+        text-decoration: none; display: inline-flex; align-items: center; gap: 8px;
+    }
+    .btn-cancel:hover { border-color: var(--primary); color: var(--primary); }
+
+    /* ── ALERTS ── */
+    .alert-success, .alert-danger {
+        display: flex; align-items: center; gap: 10px;
+        padding: 12px 16px; border-radius: 12px; margin-bottom: 20px;
+        font-size: 0.85rem; font-weight: 600;
+    }
+    .alert-success { background: #d1fae5; color: #065f46; }
+    .alert-danger { background: #fee2e2; color: #991b1b; }
+
+    /* ── DANGER ZONE ── */
+    .danger-card {
+        border: 1.5px solid #fecaca; background: #fff5f5;
+        border-radius: 16px; padding: 20px 24px;
+    }
+    .danger-card .card-title { border-color: #fecaca; color: #991b1b; }
+    .danger-card .card-title i { color: #ef4444; }
+    .btn-danger-outline {
+        background: transparent; color: var(--danger); border: 1.5px solid #fca5a5;
+        border-radius: 10px; padding: 9px 18px; font-family: 'Plus Jakarta Sans', sans-serif;
+        font-size: 0.82rem; font-weight: 700; cursor: pointer; transition: all 0.2s;
+    }
+    .btn-danger-outline:hover { background: #fee2e2; border-color: var(--danger); }
+
+    @@media (max-width: 600px) {
+        .row-2, .doc-grid { grid-template-columns: 1fr; }
+        .settings-tabs { flex-wrap: wrap; }
+        .tab-btn { flex: none; font-size: 0.75rem; padding: 8px 12px; }
+    }
 </style>
 
-<div class="container">
-    <div class="glass-card">
+<div class="settings-header">
+    <div class="container">
+        <a asp-controller="Customer" asp-action="Index" class="back-link">
+            <i class="bi bi-arrow-left"></i> Tableau de bord
+        </a>
+        <div class="page-title">Paramètres du compte</div>
+        <p class="page-subtitle">Gérez vos informations, sécurité et documents de vérification</p>
+    </div>
+</div>
+
+<div class="container pb-5" style="max-width: 780px;">
+
+    @if (TempData["Success"] != null)
+    {
+        <div class="alert-success"><i class="bi bi-check-circle-fill"></i> @TempData["Success"]</div>
+    }
+    @if (TempData["Error"] != null)
+    {
+        <div class="alert-danger"><i class="bi bi-exclamation-circle-fill"></i> @TempData["Error"]</div>
+    }
+
+    <div class="avatar-section">
+        <div class="avatar-wrap">
+            <img src="@(Model.ImageUrl ?? "/images/default-avatar.png")" class="avatar-img" id="avatarPreview" alt="Photo de profil">
+            <label for="avatarInput" class="avatar-badge" title="Changer la photo">
+                <i class="bi bi-camera-fill"></i>
+            </label>
+        </div>
+        <div class="avatar-info">
+            <h6>@Model.FullName</h6>
+            <p>@Model.Email</p>
+            @if (Model.IsVerified)
+            {
+                <span class="status-badge verified"><span class="dot"></span> Compte vérifié</span>
+            }
+            else
+            {
+                <span class="status-badge pending"><span class="dot"></span> Vérification en attente</span>
+            }
+        </div>
+    </div>
+
+    <div class="settings-tabs">
+        <button class="tab-btn @(activeTab == "profile" ? "active" : "")" onclick="switchTab('profile')">
+            <i class="bi bi-person-fill"></i> Profil
+        </button>
+        <button class="tab-btn @(activeTab == "security" ? "active" : "")" onclick="switchTab('security')">
+            <i class="bi bi-shield-lock-fill"></i> Sécurité
+        </button>
+        <button class="tab-btn @(activeTab == "documents" ? "active" : "")" onclick="switchTab('documents')">
+            <i class="bi bi-file-earmark-check-fill"></i> Documents
+            @if (Model.Documents?.Any(d => d.Status == "Rejected") == true)
+            {
+                <span style="width:7px;height:7px;background:#ef4444;border-radius:50%;display:inline-block;"></span>
+            }
+        </button>
+    </div>
+
+    <div class="tab-panel @(activeTab == "profile" ? "active" : "")" id="tab-profile">
         <form asp-action="UpdateProfile" method="post" enctype="multipart/form-data">
-            <input type="hidden" asp-for="ImageUrl" id="currentImageUrl" />
+            @Html.AntiForgeryToken()
+            <input type="file" id="avatarInput" name="profilePicture" hidden accept="image/*">
 
-            <div class="row g-5">
-                <div class="col-md-4 text-center sidebar-info">
-                    <div class="avatar-container">
-                        <img id="imagePreview" src="@(string.IsNullOrEmpty(Model.ImageUrl) ? "/images/default-avatar.png" : Model.ImageUrl)" class="avatar-main" alt="Profil">
-                        <label for="imageUpload" class="btn-edit-photo">
-                            <i class="bi bi-camera-fill fs-5"></i>
-                        </label>
-                        <input type="file" asp-for="ProfilePicture" id="imageUpload" accept="image/*">
+            <div class="settings-card">
+                <div class="card-title"><i class="bi bi-person-lines-fill"></i> Informations personnelles</div>
+
+                <div class="row-2">
+                    <div class="field-group">
+                        <label class="field-label">Nom complet</label>
+                        <input type="text" name="FullName" value="@Model.FullName" class="field-input" required placeholder="Jean Dupont">
                     </div>
-                    
-                    <h4 class="fw-800 mb-1">@Model.FullName</h4>
-                    <p class="text-muted small mb-4">Compte Utilisateur</p>
-
-                    <div class="p-3 rounded-4 bg-light text-start mb-3">
-                        <div class="d-flex justify-content-between mb-2">
-                            <span class="small fw-700">Profil complété</span>
-                            <span class="small fw-800 text-primary">90%</span>
-                        </div>
-                        <div class="progress" style="height: 8px; border-radius: 10px;">
-                            <div class="progress-bar bg-primary" style="width: 90%"></div>
-                        </div>
-
-                        <a asp-controller="Customer" asp-action="PublicProfile" asp-route-id="@Model.Id" class="btn-view-public">
-                            <i class="bi bi-eye-fill me-2"></i>Voir profil public
-                        </a>
+                    <div class="field-group">
+                        <label class="field-label">Téléphone</label>
+                        <input type="tel" name="PhoneNumber" value="@Model.PhoneNumber" class="field-input" placeholder="+261 34 00 000 00">
                     </div>
-
-                    <button type="button" class="btn btn-light w-100 rounded-4 fw-600 mb-2 py-3 border">
-                        <i class="bi bi-shield-lock me-2"></i>Mot de passe
-                    </button>
                 </div>
 
-                <div class="col-md-8 ps-md-4">
-                    <div class="d-flex justify-content-between align-items-center mb-5">
-                        <h2 class="fw-800 mb-0">Paramètres</h2>
-                        <a asp-controller="Home" asp-action="Index" class="btn btn-sm btn-outline-secondary rounded-pill px-3">Retour</a>
+                <div class="row-2">
+                    <div class="field-group">
+                        <label class="field-label">Profession / Titre</label>
+                        <input type="text" name="JobTitle" value="@Model.JobTitle" class="field-input" placeholder="Ex: Enseignant, Commerçant, Étudiant...">
+                        <p class="field-hint">Utilisé pour valider votre profil client</p>
                     </div>
-
-                    @if (TempData["Success"] != null)
-                    {
-                        <div class="alert alert-success border-0 rounded-4 shadow-sm mb-4">
-                            <i class="bi bi-check-circle-fill me-2"></i> @TempData["Success"]
-                        </div>
-                    }
-
-                    <div class="row g-4">
-                        <div class="col-12">
-                            <label class="form-label">Nom complet</label>
-                            <input asp-for="FullName" class="form-control custom-input" placeholder="Votre nom complet">
-                        </div>
-                        <div class="col-md-12">
-                            <label class="form-label">Email (Non modifiable)</label>
-                            <input asp-for="Email" class="form-control custom-input" readonly style="opacity: 0.7; cursor: not-allowed;">
-                        </div>
-                        <div class="col-md-6">
-                            <label class="form-label">Téléphone</label>
-                            <input asp-for="PhoneNumber" class="form-control custom-input" placeholder="+261 ...">
-                        </div>
-                        <div class="col-md-6">
-                            <label class="form-label">Ville / Localisation</label>
-                            <input asp-for="Address" class="form-control custom-input" placeholder="Ex: Antananarivo">
-                        </div>
-                        
-                        <div class="col-12 mt-5">
-                            <button type="submit" class="btn btn-submit-profile">
-                                <i class="bi bi-save2-fill me-2"></i>Enregistrer les modifications
-                            </button>
-                        </div>
+                    <div class="field-group">
+                        <label class="field-label">Ville / Quartier</label>
+                        <input type="text" name="Address" value="@Model.Address" class="field-input" placeholder="Ex: Antananarivo, Ankorondrano">
                     </div>
+                </div>
+            </div>
+
+            <div style="display:flex; gap:10px; justify-content:flex-end; margin-top:8px;">
+                <a asp-action="Index" class="btn-cancel"><i class="bi bi-x"></i> Annuler</a>
+                <button type="submit" class="btn-save"><i class="bi bi-cloud-check-fill"></i> Enregistrer</button>
+            </div>
+        </form>
+    </div>
+
+    <div class="tab-panel @(activeTab == "security" ? "active" : "")" id="tab-security">
+
+        <form asp-action="UpdateEmail" method="post">
+            @Html.AntiForgeryToken()
+            <div class="settings-card">
+                <div class="card-title"><i class="bi bi-envelope-fill"></i> Adresse e-mail</div>
+                <div class="row-2">
+                    <div class="field-group">
+                        <label class="field-label">E-mail actuel</label>
+                        <input type="email" class="field-input" value="@Model.Email" readonly style="opacity:0.6; cursor:not-allowed;">
+                    </div>
+                    <div class="field-group">
+                        <label class="field-label">Nouvel e-mail</label>
+                        <input type="email" name="NewEmail" class="field-input" required placeholder="nouveau@email.com">
+                    </div>
+                </div>
+                <div class="field-group">
+                    <label class="field-label">Mot de passe actuel (confirmation)</label>
+                    <div class="input-wrap">
+                        <input type="password" name="PasswordConfirm" class="field-input input-icon-right" required placeholder="••••••••" id="pwdConfirmEmail">
+                        <button type="button" class="input-icon-btn" onclick="togglePwd('pwdConfirmEmail', this)"><i class="bi bi-eye"></i></button>
+                    </div>
+                </div>
+                <div style="display:flex; justify-content:flex-end;">
+                    <button type="submit" class="btn-save"><i class="bi bi-envelope-check-fill"></i> Mettre à jour l'e-mail</button>
+                </div>
+            </div>
+        </form>
+
+        <form asp-action="UpdatePassword" method="post">
+            @Html.AntiForgeryToken()
+            <div class="settings-card">
+                <div class="card-title"><i class="bi bi-key-fill"></i> Mot de passe</div>
+
+                <div class="field-group">
+                    <label class="field-label">Mot de passe actuel</label>
+                    <div class="input-wrap">
+                        <input type="password" name="CurrentPassword" class="field-input input-icon-right" required placeholder="••••••••" id="pwdCurrent">
+                        <button type="button" class="input-icon-btn" onclick="togglePwd('pwdCurrent', this)"><i class="bi bi-eye"></i></button>
+                    </div>
+                </div>
+
+                <div class="row-2">
+                    <div class="field-group">
+                        <label class="field-label">Nouveau mot de passe</label>
+                        <div class="input-wrap">
+                            <input type="password" name="NewPassword" id="newPwd" class="field-input input-icon-right" required placeholder="••••••••" oninput="checkStrength(this.value); matchPwd();">
+                            <button type="button" class="input-icon-btn" onclick="togglePwd('newPwd', this)"><i class="bi bi-eye"></i></button>
+                        </div>
+                        <div class="strength-bar">
+                            <div class="strength-seg" id="seg1"></div>
+                            <div class="strength-seg" id="seg2"></div>
+                            <div class="strength-seg" id="seg3"></div>
+                            <div class="strength-seg" id="seg4"></div>
+                        </div>
+                        <p class="strength-text" id="strengthText" style="color:var(--muted);">Saisissez un mot de passe</p>
+                    </div>
+                    <div class="field-group">
+                        <label class="field-label">Confirmer le mot de passe</label>
+                        <div class="input-wrap">
+                            <input type="password" name="ConfirmPassword" id="confirmPwd" class="field-input input-icon-right" required placeholder="••••••••" oninput="matchPwd()">
+                            <button type="button" class="input-icon-btn" onclick="togglePwd('confirmPwd', this)"><i class="bi bi-eye"></i></button>
+                        </div>
+                        <p class="field-hint" id="matchMsg" style="margin-top:7px;"></p>
+                    </div>
+                </div>
+
+                <div style="display:flex; justify-content:flex-end;">
+                    <button type="submit" class="btn-save" id="btnChangePwd" disabled><i class="bi bi-shield-lock-fill"></i> Changer le mot de passe</button>
                 </div>
             </div>
         </form>
     </div>
+
+    <div class="tab-panel @(activeTab == "documents" ? "active" : "")" id="tab-documents">
+        <div class="settings-card">
+            <div class="card-title"><i class="bi bi-shield-fill-check"></i> Vérification d'identité</div>
+            <p style="font-size:0.83rem; color:var(--muted); margin:-8px 0 20px;">
+                Fournissez vos documents pour que l'admin valide votre compte. Les fichiers acceptés : PDF, JPG, PNG (max 5 Mo chacun).
+            </p>
+
+            <div class="doc-grid">
+                @{
+                    var docTypes = new[]
+                    {
+                        new { Key = "CIN",          Label = "Carte d'identité (CIN)", Sub = "Recto/verso",              Icon = "bi-person-vcard-fill",     Color = "#eef2ff", IconColor = "#4f46e5" },
+                        new { Key = "CertResidence", Label = "Certificat de résidence", Sub = "Délivré par la commune",  Icon = "bi-house-fill",            Color = "#f0fdf4", IconColor = "#16a34a" },
+                        new { Key = "CertTravail",   Label = "Certificat de travail",  Sub = "Ou attestation de revenu", Icon = "bi-briefcase-fill",        Color = "#fffbeb", IconColor = "#d97706" },
+                        new { Key = "CV",            Label = "CV / Curriculum Vitae",  Sub = "Format PDF recommandé",    Icon = "bi-file-earmark-person-fill", Color = "#fff1f2", IconColor = "#e11d48" },
+                    };
+                }
+
+                @foreach (var dt in docTypes)
+                {
+                    var existing = Model.Documents?.FirstOrDefault(d => d.DocumentType == dt.Key);
+                    <div class="doc-item" id="drop-@dt.Key">
+                        <form asp-action="UploadDocument" method="post" enctype="multipart/form-data" id="form-@dt.Key">
+                            @Html.AntiForgeryToken()
+                            <input type="hidden" name="documentType" value="@dt.Key">
+                            <input type="file" name="file" accept=".pdf,.jpg,.jpeg,.png" onchange="autoSubmitDoc(this, '@dt.Key')">
+                        </form>
+
+                        <div class="doc-icon" style="background:@dt.Color; color:@dt.IconColor;">
+                            <i class="bi @dt.Icon"></i>
+                        </div>
+                        <div class="doc-name">@dt.Label</div>
+                        <div class="doc-sub">@dt.Sub</div>
+
+                        @if (existing != null)
+                        {
+                            <span class="doc-status @existing.Status.ToLower()">
+                                @switch (existing.Status)
+                                {
+                                    case "Pending":
+                                        @:<i class="bi bi-clock-fill"></i> En attente
+                                        break;
+                                    case "Approved":
+                                        @:<i class="bi bi-check-circle-fill"></i> Approuvé
+                                        break;
+                                    case "Rejected":
+                                        @:<i class="bi bi-x-circle-fill"></i> Refusé — re-soumettre
+                                        break;
+                                    default:
+                                        @:Statut inconnu
+                                        break;
+                                }
+                            </span>
+                        }
+                        else
+                        {
+                            <span class="doc-status none"><i class="bi bi-upload"></i> Non soumis</span>
+                        }
+                    </div>
+                }
+            </div>
+
+            <p style="font-size:0.75rem; color:var(--muted); margin-top:16px;">
+                <i class="bi bi-info-circle me-1"></i>
+                La vérification prend généralement 24-48h. Vous serez notifié par e-mail.
+            </p>
+        </div>
+    </div>
+    @if (activeTab == "security")
+    {
+        <div class="danger-card">
+            <div class="card-title"><i class="bi bi-exclamation-triangle-fill"></i> Zone de danger</div>
+            <p style="font-size:0.83rem; color:#7f1d1d; margin:0 0 14px;">
+                La suppression de votre compte est irréversible. Toutes vos données, réservations et avis seront définitivement effacés.
+            </p>
+            <button class="btn-danger-outline" onclick="confirmDelete()">
+                <i class="bi bi-trash3-fill me-1"></i> Supprimer mon compte
+            </button>
+        </div>
+    }
 </div>
 
 <script>
-    // Aperçu de l'image avant l'envoi
-    document.getElementById('imageUpload').onchange = function (evt) {
-        const [file] = this.files;
-        if (file) {
-            if(file.size > 5 * 1024 * 1024) {
-                alert("L'image est trop lourde (max 5 Mo).");
-                this.value = '';
-                return;
-            }
+    // ── Tab switching
+    function switchTab(name) {
+        document.querySelectorAll('.tab-panel').forEach(p => p.classList.remove('active'));
+        document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
+        document.getElementById('tab-' + name)?.classList.add('active');
+        document.querySelectorAll('.tab-btn').forEach(b => {
+            if (b.getAttribute('onclick')?.includes(name)) b.classList.add('active');
+        });
+    }
 
-            const reader = new FileReader();
-            reader.onload = function(e) {
-                document.getElementById('imagePreview').src = e.target.result;
-            };
-            reader.readAsDataURL(file);
+    // Restore active tab from server redirect
+    const initialTab = '@activeTab';
+    if (initialTab && initialTab !== 'profile') switchTab(initialTab);
+
+    // ── Password visibility toggle
+    function togglePwd(id, btn) {
+        const inp = document.getElementById(id);
+        const isText = inp.type === 'text';
+        inp.type = isText ? 'password' : 'text';
+        btn.querySelector('i').className = isText ? 'bi bi-eye' : 'bi bi-eye-slash';
+    }
+
+    // ── Password strength
+    function checkStrength(val) {
+        const segs = [document.getElementById('seg1'), document.getElementById('seg2'),
+                      document.getElementById('seg3'), document.getElementById('seg4')];
+        const txt = document.getElementById('strengthText');
+        let score = 0;
+        if (val.length >= 8)  score++;
+        if (/[A-Z]/.test(val)) score++;
+        if (/[0-9]/.test(val)) score++;
+        if (/[^A-Za-z0-9]/.test(val)) score++;
+
+        const levels = ['weak','weak','medium','strong','strong'];
+        const labels = ['','Trop court','Faible','Acceptable','Fort','Très fort'];
+        const colors = ['','#ef4444','#f59e0b','#f59e0b','#10b981','#10b981'];
+
+        segs.forEach((s, i) => {
+            s.className = 'strength-seg ' + (i < score ? levels[score] : '');
+        });
+        txt.textContent = labels[score] || '';
+        txt.style.color = colors[score] || '';
+    }
+
+    // ── Password match
+    function matchPwd() {
+        const np = document.getElementById('newPwd').value;
+        const cp = document.getElementById('confirmPwd').value;
+        const msg = document.getElementById('matchMsg');
+        const btn = document.getElementById('btnChangePwd');
+        if (!cp) { msg.textContent = ''; btn.disabled = true; return; }
+        const ok = np === cp && np.length >= 8;
+        msg.textContent = ok ? '✓ Les mots de passe correspondent' : '✗ Ne correspondent pas';
+        msg.style.color = ok ? 'var(--success)' : 'var(--danger)';
+        btn.disabled = !ok;
+    }
+
+    // ── Avatar preview
+    document.getElementById('avatarInput')?.addEventListener('change', function() {
+        const [file] = this.files;
+        if (file) document.getElementById('avatarPreview').src = URL.createObjectURL(file);
+    });
+
+    // ── Auto-submit document forms on file select
+    function autoSubmitDoc(input, key) {
+        if (input.files.length > 0) {
+            document.getElementById('form-' + key).submit();
+        }
+    }
+
+    // ── Delete confirmation
+    function confirmDelete() {
+        if (confirm('Êtes-vous sûr de vouloir supprimer définitivement votre compte ? Cette action est irréversible.')) {
+            window.location.href = '@Url.Action("DeleteAccount", "Customer")';
         }
     }
 </script>

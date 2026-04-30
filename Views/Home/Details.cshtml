@@ -265,8 +265,52 @@
                                 @foreach (var item in Model.PortfolioItems)
                                 {
                                     <div class="col-md-4 col-6">
-                                        <div class="portfolio-item shadow-sm">
-                                            <img src="@item.ImageUrl" class="portfolio-img" alt="Travail">
+                                        <div class="portfolio-item shadow-sm" style="height:auto;">
+
+                                            <div style="height:180px; overflow:hidden;">
+                                                <img src="@item.ImageUrl" class="portfolio-img" alt="Travail">
+                                            </div>
+
+                                            <div style="padding:10px 12px; background:#fcfbf7;
+                                                        border-top:1px solid #f4eee0;
+                                                        display:flex; align-items:center; gap:8px;">
+
+                                                <span style="flex:1; min-width:0; font-size:0.8rem;
+                                                            font-weight:700; color:#3e362e;
+                                                            white-space:nowrap; overflow:hidden;
+                                                            text-overflow:ellipsis;"
+                                                    title="@item.Description">
+                                                    @(string.IsNullOrEmpty(item.Description) ? "Sans titre" : item.Description)
+                                                </span>
+
+                                                @if (!string.IsNullOrEmpty(item.ProjectUrl))
+                                                {
+                                                    
+                                                    string pIcon  = "bi-link-45deg";
+                                                    string pColor = "#a67c52";
+                                                    string pTip   = "Voir le projet";
+
+                                                    if      (item.ProjectUrl.Contains("github.com"))   { pIcon = "bi-github";   pColor = "#1e293b"; pTip = "GitHub";   }
+                                                    else if (item.ProjectUrl.Contains("behance.net"))  { pIcon = "bi-behance";  pColor = "#0057ff"; pTip = "Behance";  }
+                                                    else if (item.ProjectUrl.Contains("dribbble.com")) { pIcon = "bi-dribbble"; pColor = "#ea4c89"; pTip = "Dribbble"; }
+                                                    else if (item.ProjectUrl.Contains("youtube.com") ||
+                                                            item.ProjectUrl.Contains("youtu.be"))     { pIcon = "bi-youtube";  pColor = "#dc2626"; pTip = "YouTube";  }
+                                                    else if (item.ProjectUrl.Contains("linkedin.com")) { pIcon = "bi-linkedin"; pColor = "#0a66c2"; pTip = "LinkedIn"; }
+                                                
+                                                    <a href="@item.ProjectUrl"
+                                                    target="_blank"
+                                                    rel="noopener noreferrer"
+                                                    title="@pTip"
+                                                    style="flex-shrink:0; color:@pColor;
+                                                            font-size:1.15rem; text-decoration:none;
+                                                            transition:opacity .2s;"
+                                                    onmouseover="this.style.opacity='.6'"
+                                                    onmouseout="this.style.opacity='1'">
+                                                        <i class="bi @pIcon"></i>
+                                                    </a>
+                                                }
+
+                                            </div>
                                         </div>
                                     </div>
                                 }

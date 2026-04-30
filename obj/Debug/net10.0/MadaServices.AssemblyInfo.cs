@@ -13,7 +13,7 @@ using System.Reflection;
 [assembly: System.Reflection.AssemblyCompanyAttribute("MadaServices")]
 [assembly: System.Reflection.AssemblyConfigurationAttribute("Debug")]
 [assembly: System.Reflection.AssemblyFileVersionAttribute("1.0.0.0")]
-[assembly: System.Reflection.AssemblyInformationalVersionAttribute("1.0.0+02932ab768f39f5040a746c065f9850776e99065")]
+[assembly: System.Reflection.AssemblyInformationalVersionAttribute("1.0.0+3dea7675c4c1d20ce12166a044cdc234d9d469c4")]
 [assembly: System.Reflection.AssemblyProductAttribute("MadaServices")]
 [assembly: System.Reflection.AssemblyTitleAttribute("MadaServices")]
 [assembly: System.Reflection.AssemblyVersionAttribute("1.0.0.0")]

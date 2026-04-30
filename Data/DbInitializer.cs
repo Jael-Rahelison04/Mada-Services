@@ -1,6 +1,6 @@
+// Data/DbInitializer.cs
 using Microsoft.AspNetCore.Identity;
 using MadaServices.Models;
-using Microsoft.Extensions.DependencyInjection;
 
 namespace MadaServices.Data
 {
@@ -11,40 +11,34 @@ namespace MadaServices.Data
             var roleManager = serviceProvider.GetRequiredService<RoleManager<IdentityRole<int>>>();
             var userManager = serviceProvider.GetRequiredService<UserManager<User>>();
 
-            // 1. Création des rôles indispensables
+            // ── 1. Création des rôles ────────────────────────────────
             string[] roles = { "Admin", "Provider", "Client" };
             foreach (var role in roles)
             {
                 if (!await roleManager.RoleExistsAsync(role))
-                {
-                    await roleManager.CreateAsync(new IdentityRole<int> { Name = role });
-                }
+                    await roleManager.CreateAsync(new IdentityRole<int>(role));
             }
 
-            // 2. Création forcée de l'Administrateur par défaut
+            // ── 2. Admin : vérifier par RÔLE, pas par email ──────────
+            // Ainsi, même si l'admin change son email, aucun doublon ne sera créé
+            var existingAdmins = await userManager.GetUsersInRoleAsync("Admin");
+            if (existingAdmins.Any())
+                return; // Un admin existe déjà → rien à faire
+
+            // Aucun admin en base → créer le compte par défaut
             string adminEmail = "admin@madaservices.mg";
-            var adminUser = await userManager.FindByEmailAsync(adminEmail);
-
-            if (adminUser == null)
+            var admin = new User
             {
-                var newAdmin = new User
-                {
-                    UserName = adminEmail,
-                    Email = adminEmail,
-                    FullName = "Administrateur Système",
-                    EmailConfirmed = true,
-                    CreatedAt = DateTime.Now
-                };
+                UserName       = adminEmail,
+                Email          = adminEmail,
+                FullName       = "Administrateur MadaServices",
+                EmailConfirmed = true,
+                CreatedAt      = DateTime.Now
+            };
 
-                // Création avec le mot de passe AdminMada2026!
-                var result = await userManager.CreateAsync(newAdmin, "AdminMada2026!");
-
-                if (result.Succeeded)
-                {
-                    // Attribution du rôle Admin
-                    await userManager.AddToRoleAsync(newAdmin, "Admin");
-                }
-            }
+            var result = await userManager.CreateAsync(admin, "AdminMada2026!");
+            if (result.Succeeded)
+                await userManager.AddToRoleAsync(admin, "Admin");
         }
     }
 }

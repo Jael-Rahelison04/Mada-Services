@@ -9,6 +9,7 @@ using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using MadaServices.Models;
 using MadaServices.Data;
+using MadaServices.Models.ViewModels;
 
 namespace MadaServices.Controllers
 {

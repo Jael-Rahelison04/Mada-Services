@@ -21,6 +21,7 @@ namespace MadaServices.Data
         // --- NOUVEAUX DBSET POUR LE DYNAMISME ---
         public DbSet<Booking> Bookings { get; set; } = default!;
         public DbSet<Availability> Availabilities { get; set; } = default!;
+        public DbSet<ClientDocument> ClientDocuments { get; set; }
 
         // Data/ApplicationDbContext.cs (SECTION OnModelCreating mise à jour)
         protected override void OnModelCreating(ModelBuilder builder)
